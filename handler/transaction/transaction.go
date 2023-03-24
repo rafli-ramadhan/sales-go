@@ -1,7 +1,6 @@
 package transaction
 
 import (
-	// "crypto/rand"
 	"fmt"
 	"math/rand"
 	"sales-go/model"
@@ -52,7 +51,6 @@ func (handler *handler) GetTransactionByNumber() {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-
 	
 	fmt.Println("\nTOKO PHINCON")
 	fmt.Println("Jl. Arteri Pd. Indah - Jakarta")
@@ -66,12 +64,13 @@ func (handler *handler) GetTransactionByNumber() {
 	fmt.Printf("Revenue\t\t\tRp.%0.2f\n", result.Transaction.Pay-result.Transaction.Total)
 }
 
-func (handler *handler) CreateTransaction() {	
-	// 1. input product name
+func (handler *handler) CreateTransaction() {
 	var name string
 	var quantity int64
 	var total float64
 	var pay float64
+
+	// 1. input product name
 	fmt.Println("\nInput product name : ")
 	fmt.Scanln(&name)
 
@@ -88,6 +87,12 @@ func (handler *handler) CreateTransaction() {
 	// 3. input quantity
 	fmt.Println("\nInput quantity : ")
 	fmt.Scanln(&quantity)
+
+	if quantity <= 0 {
+		fmt.Println("Product quantity should be positive number and not 0.")
+
+		handler.CreateTransaction()
+	}
 
 	var discount float64
 	if quantity > 300000 {
@@ -116,6 +121,12 @@ func (handler *handler) CreateTransaction() {
 	// 5. input pay
 	fmt.Println("\nInput the nominal you want to pay : ")
 	fmt.Scanln(&pay)
+
+	if pay <= 0 {
+		fmt.Println("Input pay should be positive number and not 0.")
+
+		handler.CreateTransaction()
+	}
 	
 	// 6. calculate refund
 	fmt.Println("\nRefund : ", pay - total)
@@ -131,6 +142,7 @@ func (handler *handler) CreateTransaction() {
 		Pay:               pay,
 	}
 
+	// 1. Buat transaction detail berulang-ulang tanpa Transaction, 2. Buat transaction, 3. Transaction detail yang sudah dibuat, dimasukkan struct transactionnya.
 	newTransactionDetail := model.TransactionDetail{
 		Id:          int64(len(model.TransactionSlice)) + 1,
 		Item:        name,

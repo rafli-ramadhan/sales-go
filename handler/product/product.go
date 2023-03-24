@@ -43,6 +43,12 @@ func (handler *handler) Create() {
 	fmt.Println("\nInput price data : ")
 	fmt.Scanln(&price)
 
+	if price <= 0 {
+		fmt.Println("Product price should be positive number and not 0.")
+
+		handler.Create()
+	}
+
 	result := handler.repo.Create(model.ProductRequest{
 		Name:  name,
 		Price: price,

@@ -43,6 +43,12 @@ func (handler *handler) Create() {
 	fmt.Println("\nInput persen data : ")
 	fmt.Scanln(&persen)
 
+	if persen <= 0 {
+		fmt.Println("Voucher persen should be positive number and not 0.")
+
+		handler.Create()
+	}
+
 	handler.repo.Create(model.VoucherRequest{
 		Code:   code,
 		Persen: persen,
