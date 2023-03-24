@@ -94,8 +94,10 @@ func (handler *handler) CreateTransaction() {
 		handler.CreateTransaction()
 	}
 
-	var discount float64
-	if quantity > 300000 {
+	total = float64(quantity)*product.Price
+
+	var discount float64 = 0
+	if total > 300000 {
 		var voucherCode string
 		fmt.Println("\nInput voucher code : ")
 		fmt.Scanln(&voucherCode)
@@ -103,16 +105,14 @@ func (handler *handler) CreateTransaction() {
 		voucher, err := handler.voucherrepo.GetVoucherByCode(voucherCode)
 		if err != nil {
 			fmt.Println(err)
-			total = float64(quantity)*product.Price
 
-			fmt.Println("Sorry, there is no voucher with name %s\n", voucherCode)
+			fmt.Println("\nSorry, there is no voucher with name %s\n", voucherCode)
 		} else {
-			total = float64(quantity)*product.Price*(voucher.Persen/100)
+			discount = voucher.Persen/100
+			total = total*(discount)
 
-			fmt.Println("Congratulation, there is a discount : ", voucher.Persen)
+			fmt.Println("\nCongratulation, there is a discount ", voucher.Persen)
 		}
-	} else {
-		total = float64(quantity)*product.Price
 	}
 
 	// 4. Show total user should pay
