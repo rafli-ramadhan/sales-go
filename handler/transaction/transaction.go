@@ -53,12 +53,17 @@ func (handler *handler) GetTransactionByNumber() {
 		fmt.Println(err.Error())
 	}
 
-	fmt.Println("\n=== Transaction Detail ====")
-	fmt.Printf("Name     : %s\n", result.Transaction.Name)
-	fmt.Printf("Quantity : %d\n", result.Transaction.Quantity)
-	fmt.Printf("Discount : %0.2f\n", result.Transaction.Discount)
-	fmt.Printf("Total    : %0.2f\n", result.Transaction.Total)
-	fmt.Printf("Pay      : %0.2f\n", result.Transaction.Pay)
+	
+	fmt.Println("\nTOKO PHINCON")
+	fmt.Println("Jl. Arteri Pd. Indah - Jakarta")
+	fmt.Printf("Transaction Number %d\n", result.Transaction.TransactionNumber)
+	fmt.Println("--------------------------------------\n")
+	fmt.Printf("%s\t\t\n", result.Transaction.Name)
+	fmt.Printf("Rp.%0.2f\t\tx%d\n", result.Price, result.Transaction.Quantity)
+	fmt.Printf("\nDiscount\t\t%0.2f persen\n", result.Transaction.Discount)
+	fmt.Printf("Total\t\t\tRp.%0.0f\n", result.Transaction.Total)
+	fmt.Printf("Pay\t\t\tRp.%0.2f\n", result.Transaction.Pay)
+	fmt.Printf("Revenue\t\t\tRp.%0.2f\n", result.Transaction.Pay-result.Transaction.Total)
 }
 
 func (handler *handler) CreateTransaction() {	
