@@ -40,19 +40,27 @@ func (handler *handler) Create() {
 	var price float64
 	fmt.Println("\nInput name data : ")
 	fmt.Scanln(&name)
-	fmt.Println("\nInput price data : ")
-	fmt.Scanln(&price)
 
-	if price <= 0 {
-		fmt.Println("Product price should be positive number and not 0.")
+	_, err := handler.repo.GetProductByName(name)
+	if err != nil {
+		fmt.Println("\nInput price data : ")
+		fmt.Scanln(&price)
+
+		if price <= 0 {
+			fmt.Println("Product price should be positive number and not 0.")
+
+			handler.Create()
+		}
+
+		result := handler.repo.Create(model.ProductRequest{
+			Name:  name,
+			Price: price,
+		})
+
+		fmt.Println("Product has been added with id : ", result.Id)
+	} else {
+		fmt.Println("\nProduct already exist, pelase input another product name.")
 
 		handler.Create()
 	}
-
-	result := handler.repo.Create(model.ProductRequest{
-		Name:  name,
-		Price: price,
-	})
-
-	fmt.Println("Product has been added with id : ", result.Id)
 }

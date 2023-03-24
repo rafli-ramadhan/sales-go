@@ -40,17 +40,25 @@ func (handler *handler) Create() {
 	var persen float64
 	fmt.Println("\nInput code data : ")
 	fmt.Scanln(&code)
-	fmt.Println("\nInput persen data : ")
-	fmt.Scanln(&persen)
 
-	if persen <= 0 {
-		fmt.Println("Voucher persen should be positive number and not 0.")
+	_, err := handler.repo.GetVoucherByCode(code)
+	if err != nil {
+		fmt.Println("\nInput persen data : ")
+		fmt.Scanln(&persen)
+
+		if persen <= 0 {
+			fmt.Println("Voucher persen should be positive number and not 0.")
+
+			handler.Create()
+		}
+
+		handler.repo.Create(model.VoucherRequest{
+			Code:   code,
+			Persen: persen,
+		})
+	} else {
+		fmt.Println("\nVoucher already exist, pelase input another voucher code.")
 
 		handler.Create()
 	}
-
-	handler.repo.Create(model.VoucherRequest{
-		Code:   code,
-		Persen: persen,
-	})
 }
