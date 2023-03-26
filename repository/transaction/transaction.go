@@ -12,26 +12,29 @@ func NewRepository() *repository {
 }
 
 type Repositorier interface {
-	GetListTransaction() []model.TransactionDetail
-	GetTransactionByNumber(transactionNumber int64) (result model.TransactionDetail, err error)
-	CreateTransactionDetail(req model.TransactionDetail) (result model.TransactionDetail)
+	GetListTransaction() []model.Transaction
+	GetTransactionByNumber(transactionNumber int64) (result model.Transaction, err error)
+	CreateTransaction(req model.Transaction)
+	CreateTransactionDetail(req model.TransactionDetail)
 }
 
-func (repo *repository) GetListTransaction() []model.TransactionDetail {
+func (repo *repository) GetListTransaction() []model.Transaction {
 	return model.TransactionSlice
 }
 
-func (repo *repository) GetTransactionByNumber(transactionNumber int64) (result model.TransactionDetail, err error) {
+func (repo *repository) GetTransactionByNumber(transactionNumber int64) (result model.Transaction, err error) {
 	for _, v := range model.TransactionSlice {
-		if v.Transaction.TransactionNumber == transactionNumber {
+		if v.TransactionNumber == transactionNumber {
 			return v, nil
 		}
 	}
-	return model.TransactionDetail{}, errors.New("Transaction not found")
+	return model.Transaction{}, errors.New("Transaction not found")
 }
 
-func (repo *repository) CreateTransactionDetail(req model.TransactionDetail) (result model.TransactionDetail) {
+func (repo *repository) CreateTransaction(req model.Transaction) {
 	model.TransactionSlice = append(model.TransactionSlice, req)
-	result = req
-	return
+}
+
+func (repo *repository) CreateTransactionDetail(req model.TransactionDetail) {
+	model.TransactionDetailSlice = append(model.TransactionDetailSlice, req)
 }

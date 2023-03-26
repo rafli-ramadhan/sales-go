@@ -3,11 +3,11 @@ package model
 type Transaction struct {
 	Id                int64
 	TransactionNumber int64
-	Name              string
 	Quantity          int64
 	Discount          float64
 	Total             float64
 	Pay				  float64
+	TransactionDetail []TransactionDetail
 }
 
 type TransactionDetail struct {
@@ -16,7 +16,10 @@ type TransactionDetail struct {
 	Price       float64
 	Quantity    int64
 	Total       float64
-	Transaction Transaction
 }
 
-var TransactionSlice []TransactionDetail = []TransactionDetail{}
+var Total float64
+
+var TransactionSlice []Transaction = []Transaction{}
+
+var TransactionDetailSlice []TransactionDetail = []TransactionDetail{}

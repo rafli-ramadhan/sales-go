@@ -43,13 +43,15 @@ func (handler *handler) Create() {
 
 	_, err := handler.repo.GetProductByName(name)
 	if err != nil {
-		fmt.Println("\nInput price data : ")
-		fmt.Scanln(&price)
+		for {
+			fmt.Println("\nInput price data : ")
+			fmt.Scanln(&price)
 
-		if price <= 0 {
-			fmt.Println("Product price should be positive number and not 0.")
-
-			handler.Create()
+			if price <= 0 {
+				fmt.Println("Product price should be positive number and not 0.")
+			} else {
+				break
+			}
 		}
 
 		result := handler.repo.Create(model.ProductRequest{
