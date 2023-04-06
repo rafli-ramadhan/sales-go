@@ -1,14 +1,14 @@
 package model
 
 type Product struct {
-	Id    int64
+	Id    int
 	Name  string
 	Price float64
 }
 
 type ProductRequest struct {
-	Name  string
-	Price float64
+	Name  string	`json:"name"`
+	Price float64	`json:"price"`
 }
 
 var ProductSlice []Product = []Product{

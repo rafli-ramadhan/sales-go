@@ -1,14 +1,14 @@
 package model
 
 type Voucher struct {
-	Id     int64
+	Id     int		
 	Code   string
 	Persen float64
 }
 
 type VoucherRequest struct {
-	Code   string
-	Persen float64
+	Code   string	`json:"code"`
+	Persen float64	`json:"persen"`
 }
 
 var VoucherSlice []Voucher = []Voucher{

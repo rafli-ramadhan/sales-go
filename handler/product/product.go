@@ -1,7 +1,10 @@
 package product
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
 	"sales-go/model"
 	"sales-go/repository/product"
 )
@@ -16,53 +19,71 @@ func NewHandler(repositorier product.Repositorier) *handler {
 	}
 }
 
-type handlerer interface {
-	GetList()
-	Create()
+type Handlerer interface {
+	GetList(w http.ResponseWriter, r *http.Request)
+	Create(w http.ResponseWriter, r *http.Request)
 }
 
-func (handler *handler) GetList() {
-	result := handler.repo.GetList()
-	fmt.Printf("\nId\t\t|Name\t\t\t|Price\t\t")
-	for _, v := range result {
-		if len(v.Name) > 13 {
-			fmt.Printf("\n%d\t\t|%s\t|%0.2f", v.Id, v.Name, v.Price)
-		} else if len(v.Name) > 5 && len(v.Name) < 13 {
-			fmt.Printf("\n%d\t\t|%s\t\t|%0.2f", v.Id, v.Name, v.Price)
-		} else {
-			fmt.Printf("\n%d\t\t|%s\t\t\t|%0.2f", v.Id, v.Name, v.Price)
-		}
-	}
-}
-
-func (handler *handler) Create() {
-	var name string
-	var price float64
-	fmt.Println("\nInput name data : ")
-	fmt.Scanln(&name)
-
-	_, err := handler.repo.GetProductByName(name)
+func (handler *handler) GetList(w http.ResponseWriter, r *http.Request) {
+	result, err := handler.repo.GetList()
 	if err != nil {
-		for {
-			fmt.Println("\nInput price data : ")
-			fmt.Scanln(&price)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Sprintf("message : %s", err.Error())))
+		log.Println("[ERROR] get list product :", err.Error())
+		return
+	}
+	
+	jsonData, err := json.Marshal(result)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Sprintf("message : %s", err.Error())))
+		log.Println("[ERROR] marshal list product :", err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonData)
+}
 
-			if price <= 0 {
-				fmt.Println("Product price should be positive number and not 0.")
-			} else {
-				break
-			}
+func (handler *handler) Create(w http.ResponseWriter, r *http.Request) {
+	req := model.ProductRequest{}
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Sprintf("message : %s", err.Error())))
+		log.Println("[ERROR] decode request :", err.Error())
+		return
+	}
+
+	_, err = handler.repo.GetProductByName(req.Name)
+	if err != nil {
+		if req.Price <= 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("message : price must be > 0"))
+			return
 		}
 
-		result := handler.repo.Create(model.ProductRequest{
-			Name:  name,
-			Price: price,
-		})
-
-		fmt.Println("Product has been added with id : ", result.Id)
+		result, err := handler.repo.Create(req)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(fmt.Sprintf("message : %s", err.Error())))
+			log.Println("[ERROR] create product :", err.Error())
+			return
+		} else if err == nil {
+			jsonData, err := json.Marshal(result)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(fmt.Sprintf("message : %s", err.Error())))
+				log.Println("[ERROR] marshal result create product :", err.Error())
+				return
+			}
+			w.WriteHeader(http.StatusCreated)
+			w.Write(jsonData)
+			return
+		}
 	} else {
-		fmt.Println("\nProduct already exist, pelase input another product name.")
-
-		handler.Create()
+		log.Print(err.Error())
+		w.WriteHeader(http.StatusConflict)
+		w.Write([]byte("message : product already exist, pelase input another product name."))
+		return
 	}
 }

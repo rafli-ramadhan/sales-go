@@ -1,7 +1,10 @@
 package voucher
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
 	"sales-go/model"
 	"sales-go/repository/voucher"
 )
@@ -17,50 +20,69 @@ func NewHandler(repositorier voucher.Repositorier) *handler {
 }
 
 type Handlerer interface {
-	GetList()
-	Create()
+	GetList(w http.ResponseWriter, r *http.Request)
+	Create(w http.ResponseWriter, r *http.Request)
 }
 
-func (handler *handler) GetList() {
-	result := handler.repo.GetList()
-	fmt.Printf("\nId\t\t|Code\t\t\t|Persen\t\t")
-	for _, v := range result {
-		if len(v.Code) > 13 {
-			fmt.Printf("\n%d\t\t|%s\t|%0.2f", v.Id, v.Code, v.Persen)
-		} else if len(v.Code) > 5 && len(v.Code) < 13 {
-			fmt.Printf("\n%d\t\t|%s\t\t|%0.2f", v.Id, v.Code, v.Persen)
-		} else {
-			fmt.Printf("\n%d\t\t|%s\t\t\t|%0.2f", v.Id, v.Code, v.Persen)
-		}
-	}
-}
-
-func (handler *handler) Create() {	
-	var code string
-	var persen float64
-	fmt.Println("\nInput code data : ")
-	fmt.Scanln(&code)
-
-	_, err := handler.repo.GetVoucherByCode(code)
+func (handler *handler) GetList(w http.ResponseWriter, r *http.Request) {
+	result, err := handler.repo.GetList()
 	if err != nil {
-		for {
-			fmt.Println("\nInput persen data : ")
-			fmt.Scanln(&persen)
+		w.Write([]byte(fmt.Sprintf("message : %s", err.Error())))
+		log.Println("[ERROR] get list voucher :", err.Error())
+		return
+	}
 
-			if persen <= 0 {
-				fmt.Println("Voucher persen should be positive number and not 0.")
-			} else {
-				break
-			}
+	jsonData, err := json.Marshal(result)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Sprintf("message : %s", err.Error())))
+		log.Println("[ERROR] marshal list voucher :", err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonData)
+}
+
+func (handler *handler) Create(w http.ResponseWriter, r *http.Request) {	
+	req := model.VoucherRequest{}
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Sprintf("message : %s", err.Error())))
+		log.Println("[ERROR] decode request :", err.Error())
+		return
+	}
+
+	_, err = handler.repo.GetVoucherByCode(req.Code)
+	if err != nil {
+		if req.Persen <= 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("message : persen must be > 0"))
+			return
 		}
 
-		handler.repo.Create(model.VoucherRequest{
-			Code:   code,
-			Persen: persen,
-		})
+		result, err := handler.repo.Create(req)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(fmt.Sprintf("message : %s", err.Error())))
+			log.Println("[ERROR] create voucher :", err.Error())
+			return
+		} else if err == nil {
+			jsonData, err := json.Marshal(result)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(fmt.Sprintf("message : %s", err.Error())))
+				log.Println("[ERROR] marshal result create voucher :", err.Error())
+				return
+			}
+			w.WriteHeader(http.StatusCreated)
+			w.Write(jsonData)
+			return
+		}
 	} else {
-		fmt.Println("\nVoucher already exist, pelase input another voucher code.")
-
-		handler.Create()
+		log.Print(err.Error())
+		w.WriteHeader(http.StatusConflict)
+		w.Write([]byte("message : voucher already exist, pelase input another product name."))
+		return
 	}
 }

@@ -1,13 +1,15 @@
 package main
 
 import (
+	"sales-go/config"
 	"fmt"
-	"sales-go/helpers"
+	"net/http"
+	// "sales-go/helpers"
 
 	// handler
-	productCtrl "sales-go/handler/product"
-	transactionCtrl "sales-go/handler/transaction"
-	voucherCtrl "sales-go/handler/voucher"
+	productController "sales-go/handler/product"
+	transactionController "sales-go/handler/transaction"
+	voucherController "sales-go/handler/voucher"
 
 	// repo
 	productRepo "sales-go/repository/product"
@@ -15,24 +17,85 @@ import (
 	voucherRepo "sales-go/repository/voucher"
 )
 
-var isStop bool
+func main() {
+	config, err := config.LoadConfig()
+	if err != nil {
+		panic(err.Error())
+	}
 
-func App() {
-	// repository
-	productRepository := productRepo.NewRepository()
-	transactionRepository := transactionRepo.NewRepository()
-	voucherRepository := voucherRepo.NewRepository()
+	switch config.Storage {
+	case "json":
+		// repository
+		productRepository := productRepo.NewRepository()
+		transactionRepository := transactionRepo.NewRepository()
+		voucherRepository := voucherRepo.NewRepository()
 
-	// handler
-	productHandler := productCtrl.NewHandler(productRepository)
-	transactionHandler := transactionCtrl.NewHandler(transactionRepository, productRepository, voucherRepository)
-	voucherHandler := voucherCtrl.NewHandler(voucherRepository)
+		// handler
+		productHandler := productController.NewHandler(productRepository)
+		transactionHandler := transactionController.NewHandler(transactionRepository, productRepository, voucherRepository)
+		voucherHandler := voucherController.NewHandler(voucherRepository)
 
+		HTTPServer(config, productHandler, transactionHandler, voucherHandler)
+	default:
+		// repository
+		productRepository := productRepo.NewRepository()
+		transactionRepository := transactionRepo.NewRepository()
+		voucherRepository := voucherRepo.NewRepository()
+
+		// handler
+		productHandler := productController.NewHandler(productRepository)
+		transactionHandler := transactionController.NewHandler(transactionRepository, productRepository, voucherRepository)
+		voucherHandler := voucherController.NewHandler(voucherRepository)
+
+		Menu(productHandler, transactionHandler, voucherHandler)
+	}
+}
+
+func HTTPServer(config *config.Config, productHandler productController.Handlerer, transactionHandler transactionController.Handlerer, voucherHandler voucherController.Handlerer) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/product", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			productHandler.GetList(w, r)
+		} else if r.Method == "POST" {
+			productHandler.Create(w, r)
+		}
+	})
+	mux.HandleFunc("/voucher", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			voucherHandler.GetList(w, r)
+		} else if r.Method == "POST"{
+			voucherHandler.Create(w, r)
+		}
+	})
+	mux.HandleFunc("/transaction", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			transactionHandler.GetTransactionByNumber(w, r)
+		} else if r.Method == "POST" {
+			transactionHandler.CreateBulkTransactionDetail(w, r)
+		}
+	})
+
+	// create struct server
+	server := http.Server{
+		Addr: config.Port,
+		Handler: mux,
+	}
+
+	fmt.Println("Server running on", server.Addr)
+	err := server.ListenAndServe()
+	if err != nil {
+		panic(err.Error())
+	} else if err == nil {
+		fmt.Println("Server running on", server.Addr)
+	}
+}
+
+func Menu(productHandler productController.Handlerer, transactionHandler transactionController.Handlerer, voucherHandler voucherController.Handlerer) {
 	var menu int64
 	fmt.Println("Choose menu")
 	fmt.Println("1. Add New Product")
-	fmt.Println("2. Buy a Product")
-	fmt.Println("3. Add New Voucher")
+	fmt.Println("2. Add New Voucher")
+	fmt.Println("3. Buy a Product")
 	fmt.Println("4. Show List of Product")
 	fmt.Println("5. Show List of Voucher")
 	fmt.Println("6. Show List of Transaction")
@@ -41,43 +104,38 @@ func App() {
 	fmt.Println("Input menu : ")
 	fmt.Scanln(&menu)
 
+	/*
 	switch menu {
 	case 1:
 		productHandler.Create()
 		helper.ClearScreeen()
-		App()
+		Menu(productHandler, transactionHandler, voucherHandler)
 	case 2:
-		transactionHandler.CreateTransaction()
-		helper.ClearScreeen()
-		App()
-	case 3:
 		voucherHandler.Create()
 		helper.ClearScreeen()
-		App()
+		Menu(productHandler, transactionHandler, voucherHandler)
+	case 3:
+		transactionHandler.CreateTransaction()
+		helper.ClearScreeen()
+		Menu(productHandler, transactionHandler, voucherHandler)
 	case 4:
 		productHandler.GetList()
 		helper.ClearScreeen()
-		App()
+		Menu(productHandler, transactionHandler, voucherHandler)
 	case 5:
 		voucherHandler.GetList()
 		helper.ClearScreeen()
-		App()
+		Menu(productHandler, transactionHandler, voucherHandler)
 	case 6:
 		transactionHandler.GetList()
 		helper.ClearScreeen()
-		App()
+		Menu(productHandler, transactionHandler, voucherHandler)
 	case 7:
 		transactionHandler.GetTransactionByNumber()
 		helper.ClearScreeen()
-		App()
+		Menu(productHandler, transactionHandler, voucherHandler)
 	case 8:
-		isStop = true
-		return
-	}
-}
-
-func main() {
-	for !isStop {
-		App()
-	}
+		// Conventionally, code zero indicates success, non-zero an error.
+		os.Exit(1)
+	}*/
 }
