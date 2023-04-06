@@ -68,22 +68,6 @@ func (repo *repository) UpdateJSONTransactionDetail(req []model.TransactionDetai
 	return
 }
 
-func (repo *repository) GetIndexTransactionDetail(id int) (index int, value model.TransactionDetail,err error) {
-	listTransaction, err := repo.GetListTransactionDetail()
-	if err != nil {
-		return
-	}
-
-	for i, v := range listTransaction{
-		if v.Id == id {
-			index = i
-			value = v
-			return
-		}
-	}
-	return
-}
-
 func (repo *repository) GetTransactionByNumber(transactionNumber int) (listSelectedTransaction []model.TransactionDetail, err error) {
 	listTransaction, err := repo.GetListTransactionDetail()
 	if err != nil {
