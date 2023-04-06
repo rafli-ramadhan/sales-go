@@ -18,7 +18,7 @@ type Repositorier interface {
 	GetList() (listProduct []model.Product, err error)
 	UpdateJSON(listProduct []model.Product) (err error)
 	GetProductByName(name string) (productData model.Product, err error)
-	Create(req model.ProductRequest) (newData model.Product, err error)
+	Create(req []model.ProductRequest) (result []model.Product, err error)
 }
 
 func (repo *repository) getLastID() (lastID int, err error) {
@@ -88,7 +88,7 @@ func (repo *repository) GetProductByName(name string) (productData model.Product
 	return
 }
 
-func (repo *repository) Create(req model.ProductRequest) (newData model.Product, err error) {
+func (repo *repository) Create(req []model.ProductRequest) (result []model.Product, err error) {
 	listProduct, err := repo.GetList()
 	if err != nil {
 		return
@@ -99,12 +99,15 @@ func (repo *repository) Create(req model.ProductRequest) (newData model.Product,
 		return
 	}
 
-	newData = model.Product{
-		Id:    lastID + 1,
-		Name:  req.Name,
-		Price: req.Price,
+	for i, v := range req {
+		newProduct := model.Product{
+			Id:    lastID+1+i,
+			Name:  v.Name,
+			Price: v.Price,
+		}
+		listProduct = append(listProduct, newProduct)
+		result = append(result, newProduct)
 	}
-	listProduct = append(listProduct, newData)
 
 	err = repo.UpdateJSON(listProduct)
 	if err != nil {
