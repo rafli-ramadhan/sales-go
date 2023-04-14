@@ -3,7 +3,6 @@ package config
 import (
 	"errors"
 	"fmt"
-
 	"github.com/spf13/viper"
 )
 
@@ -32,28 +31,4 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("fatal error decode : %s", err)
 	}
 	return &config, nil
-}
-
-type mysql struct {
-	Username string
-	Password string
-	Host string
-	Port string
-	Database string
-}
-
-type configure struct {
-	MySQL mysql
-}
-
-func NewConfig() configure {
-	return configure{
-		MySQL: mysql{
-			Username: "root",
-			Password: "@Ugm428660",
-			Host:	  "localhost",
-			Port:	  "3306",
-			Database: "bootcamp",
-		},
-	}
 }

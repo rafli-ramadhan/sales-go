@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/swaggest/swgui/v3emb"
+
 	"sales-go/config"
 	"sales-go/docs"
 	"sales-go/helpers/middleware"
@@ -98,10 +99,12 @@ func DBHTTPServer(config *config.Config, productHandler product.Handlerer, trans
 		Handler: middleware[0],
 	}
 
-	fmt.Println("Server running on ", server.Addr)
+	fmt.Println("Server running on", server.Addr)
 	err := server.ListenAndServe()
 	if err != nil {
 		panic(err.Error())
+	} else {
+		fmt.Println("Test")
 	}
 }
 
