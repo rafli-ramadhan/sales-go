@@ -1,0 +1,65 @@
+definitions:
+  model.Product:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      price:
+        type: integer
+    type: object
+  model.Voucher:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      price:
+        type: integer
+    type: object
+info:
+  contact: {}
+  license: {}
+paths: 
+  /product:
+    get:
+      description: Get list product
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/model.Product'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Delete Account
+      tags:
+      - Accounts
+  /voucher:
+    get:
+      description: Get list voucher
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Voucher'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get Account
+      tags:
+      - Accounts
+
+swagger: "2.0"

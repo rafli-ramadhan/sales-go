@@ -16,11 +16,6 @@ func NewRepository() *repository {
 	return &repository{}
 }
 
-type Repositorier interface {
-	GetTransactionByNumber(transactionNumber int) (result []model.TransactionDetail, err error)
-	CreateBulkTransactionDetail(voucher model.VoucherRequest, listTransactionDetail []model.TransactionDetail, req model.TransactionDetailBulkRequest) (res []model.TransactionDetail, err error)
-}
-
 func (repo *repository) getLastID() (lastID int, err error) {
 	listTransaction, err := repo.GetListTransactionDetail()
 	if err != nil {
@@ -51,7 +46,7 @@ func (repo *repository) GetListTransactionDetail() (res []model.TransactionDetai
 func (repo *repository) UpdateJSONTransactionDetail(req []model.TransactionDetail) (err error) {
 	writerJson, err := os.Create("data/transaction.json")
 	if err != nil {
-		err = errors.New(fmt.Sprint("[ERROR] os create transaction json %s", err.Error()))
+		err = errors.New(fmt.Sprintf("[ERROR] os create transaction json %s", err.Error()))
 		return
 	}
 	encodeToJson := json.NewEncoder(writerJson)
@@ -59,7 +54,7 @@ func (repo *repository) UpdateJSONTransactionDetail(req []model.TransactionDetai
 
 	writerTxt, err := os.Create("data/transaction.txt")
 	if err != nil { 
-		err = errors.New(fmt.Sprint("[ERROR] os create transaction txt %s", err.Error()))
+		err = errors.New(fmt.Sprintf("[ERROR] os create transaction txt %s", err.Error()))
 		return
 	}
 	encodeToTxt := json.NewEncoder(writerTxt)

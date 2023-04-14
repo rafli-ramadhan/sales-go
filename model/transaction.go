@@ -34,8 +34,14 @@ type TransactionDetailItemRequest struct {
 
 type TransactionDetailBulkRequest struct {
 	Items	[]TransactionDetailItemRequest
-	Name	string `json:"name"`
+	Name	string 	`json:"name"`
 	Pay		float64 `json:"pay"`
+}
+
+type TransactionResponseData struct {
+	Status  int					`json:"status"`
+	Message string				`json:"message"`
+	Data	[]TransactionDetail	`json:"data"`
 }
 
 var Total float64

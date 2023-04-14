@@ -16,30 +16,25 @@ import (
 	//"time"
 )
 
-type handler struct {
+type jsonhttphandler struct {
 	repo        transaction.Repositorier
 	productrepo product.Repositorier
 	voucherrepo voucher.Repositorier
 }
 
-func NewHandler(
+func NewJsonHTTPHandler(
 	repositorier transaction.Repositorier,
 	productRepository product.Repositorier,
 	voucherRepository voucher.Repositorier,
-) *handler {
-	return &handler{
+) *jsonhttphandler {
+	return &jsonhttphandler{
 		repo:        repositorier,
 		productrepo: productRepository,
 		voucherrepo: voucherRepository,
 	}
 }
 
-type Handlerer interface {
-	GetTransactionByNumber(w http.ResponseWriter, r *http.Request)
-	CreateBulkTransactionDetail(w http.ResponseWriter, r *http.Request)
-}
-
-func (handler *handler) GetTransactionByNumber(w http.ResponseWriter, r *http.Request) {
+func (handler *jsonhttphandler) GetTransactionByNumber(w http.ResponseWriter, r *http.Request) {
 	transactionNumberStr := r.URL.Query().Get("transaction_id")
 	transactionNumber, err := strconv.Atoi(transactionNumberStr)
 	if err != nil {
@@ -72,10 +67,9 @@ func (handler *handler) GetTransactionByNumber(w http.ResponseWriter, r *http.Re
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(jsonData))
-	return
 }
 
-func (handler *handler) CreateBulkTransactionDetail(w http.ResponseWriter, r *http.Request) {
+func (handler *jsonhttphandler) CreateBulkTransactionDetail(w http.ResponseWriter, r *http.Request) {
 	req := model.TransactionDetailBulkRequest{}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -111,8 +105,7 @@ func (handler *handler) CreateBulkTransactionDetail(w http.ResponseWriter, r *ht
 	}
 
 	voucherData := model.VoucherRequest{}
-	var voucherCode string
-	voucherCode = r.URL.Query().Get("voucher_code")
+	voucherCode := r.URL.Query().Get("voucher_code")
 	if voucherCode != "" {
 		voucher, err := handler.voucherrepo.GetVoucherByCode(voucherCode)
 		if err != nil {
@@ -148,5 +141,4 @@ func (handler *handler) CreateBulkTransactionDetail(w http.ResponseWriter, r *ht
 	}
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(fmt.Sprintf("Created new transaction with ids : %d", ids)))
-	return
 }

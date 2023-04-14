@@ -9,22 +9,17 @@ import (
 	"sales-go/repository/product"
 )
 
-type handler struct {
+type jsonhttphandler struct {
 	repo product.Repositorier
 }
 
-func NewHandler(repositorier product.Repositorier) *handler {
-	return &handler{
+func NewJsonHTTPHandler(repositorier product.Repositorier) *jsonhttphandler {
+	return &jsonhttphandler{
 		repo: repositorier,
 	}
 }
 
-type Handlerer interface {
-	GetList(w http.ResponseWriter, r *http.Request)
-	Create(w http.ResponseWriter, r *http.Request)
-}
-
-func (handler *handler) GetList(w http.ResponseWriter, r *http.Request) {
+func (handler *jsonhttphandler) GetList(w http.ResponseWriter, r *http.Request) {
 	result, err := handler.repo.GetList()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -44,7 +39,7 @@ func (handler *handler) GetList(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonData)
 }
 
-func (handler *handler) Create(w http.ResponseWriter, r *http.Request) {
+func (handler *jsonhttphandler) Create(w http.ResponseWriter, r *http.Request) {
 	req := []model.ProductRequest{}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -55,7 +50,6 @@ func (handler *handler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, v := range req {
-		fmt.Println(v)
 		if v.Price <= 0 {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("message : price must be > 0"))
@@ -90,5 +84,4 @@ func (handler *handler) Create(w http.ResponseWriter, r *http.Request) {
 		w.Write(jsonData)
 		return
 	}
-	return
 }

@@ -8,17 +8,10 @@ import (
 	"sales-go/model"
 )
 
-type repository struct {}
+type repository struct{}
 
 func NewRepository() *repository {
 	return &repository{}
-}
-
-type Repositorier interface {
-	GetList() (listProduct []model.Product, err error)
-	UpdateJSON(listProduct []model.Product) (err error)
-	GetProductByName(name string) (productData model.Product, err error)
-	Create(req []model.ProductRequest) (result []model.Product, err error)
 }
 
 func (repo *repository) getLastID() (lastID int, err error) {
@@ -38,20 +31,20 @@ func (repo *repository) getLastID() (lastID int, err error) {
 func (repo *repository) GetList() (listProduct []model.Product, err error) {
 	reader, err := os.Open("data/product.json")
 	if err != nil {
-		err = errors.New(fmt.Sprintf("[ERROR] os open product json : %s", err.Error()))
+		err = fmt.Errorf("[ERROR] os open product json : %s", err.Error())
 		return
 	}
-	
+
 	decoder := json.NewDecoder(reader)
 	decoder.Decode(&listProduct)
-	
+
 	return
 }
 
-func (repo *repository) UpdateJSON(listProduct []model.Product) (err error) {
+func (repo *repository) updateJSON(listProduct []model.Product) (err error) {
 	writerJson, err := os.Create("data/product.json")
 	if err != nil {
-		err = errors.New(fmt.Sprintf("[ERROR] os create product json : %s", err.Error()))
+		err = fmt.Errorf("[ERROR] os create product json : %s", err.Error())
 		return
 	}
 	encodeToJson := json.NewEncoder(writerJson)
@@ -59,7 +52,7 @@ func (repo *repository) UpdateJSON(listProduct []model.Product) (err error) {
 
 	writeTxt, err := os.Create("data/product.txt")
 	if err != nil {
-		err = errors.New(fmt.Sprintf("[ERROR] os create product txt : %s", err.Error()))
+		err = fmt.Errorf("[ERROR] os create product txt : %s", err.Error())
 		return
 	}
 	encodeToTxt := json.NewEncoder(writeTxt)
@@ -82,7 +75,7 @@ func (repo *repository) GetProductByName(name string) (productData model.Product
 
 	emptyStruct := model.Product{}
 	if productData == emptyStruct {
-		err = errors.New("Product not found")
+		err = errors.New("product not found")
 		return
 	}
 	return
@@ -101,7 +94,7 @@ func (repo *repository) Create(req []model.ProductRequest) (result []model.Produ
 
 	for i, v := range req {
 		newProduct := model.Product{
-			Id:    lastID+1+i,
+			Id:    lastID + 1 + i,
 			Name:  v.Name,
 			Price: v.Price,
 		}
@@ -109,7 +102,7 @@ func (repo *repository) Create(req []model.ProductRequest) (result []model.Produ
 		result = append(result, newProduct)
 	}
 
-	err = repo.UpdateJSON(listProduct)
+	err = repo.updateJSON(listProduct)
 	if err != nil {
 		return
 	}

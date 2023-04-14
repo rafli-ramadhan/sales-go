@@ -11,6 +11,12 @@ type ProductRequest struct {
 	Price float64	`json:"price"`
 }
 
+type ProductResponseData struct {
+	Status  int			`json:"status"`
+	Message string		`json:"message"`
+	Data	[]Product	`json:"data"`
+}
+
 var ProductSlice []Product = []Product{
 	{
 		Id:    1,

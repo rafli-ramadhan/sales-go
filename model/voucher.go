@@ -11,6 +11,12 @@ type VoucherRequest struct {
 	Persen float64	`json:"persen"`
 }
 
+type VoucherResponseData struct {
+	Status  int			`json:"status"`
+	Message string		`json:"message"`
+	Data	[]Voucher	`json:"data"`
+}
+
 var VoucherSlice []Voucher = []Voucher{
 	{
 		Id:    1,
