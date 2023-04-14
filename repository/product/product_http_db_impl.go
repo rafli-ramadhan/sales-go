@@ -15,7 +15,7 @@ func NewDBHTTPRepository () *repositoryhttpdb {
 }
 
 func (repo *repositoryhttpdb) GetList() (listProduct []model.Product, err error) {
-	db := client.NewConnection("mysql").GetMysqlConnection()
+	db := client.NewConnection(client.Database).GetMysqlConnection()
 	defer db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -44,7 +44,7 @@ func (repo *repositoryhttpdb) GetList() (listProduct []model.Product, err error)
 }
 
 func (repo *repositoryhttpdb) GetProductByName(name string) (productData model.Product, err error) {
-	db := client.NewConnection("mysql").GetMysqlConnection()
+	db := client.NewConnection(client.Database).GetMysqlConnection()
 	defer db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -68,7 +68,7 @@ func (repo *repositoryhttpdb) GetProductByName(name string) (productData model.P
 }
 
 func (repo *repositoryhttpdb) Create(req []model.ProductRequest) (result []model.Product, err error) {
-	db := client.NewConnection("mysql").GetMysqlConnection()
+	db := client.NewConnection(client.Database).GetMysqlConnection()
 	defer db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)

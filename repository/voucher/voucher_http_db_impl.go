@@ -15,7 +15,7 @@ func NewDBHTTPRepository () *repositoryhttpdb {
 }
 
 func (repo *repositoryhttpdb) GetList() (listVoucher []model.Voucher, err error) {
-	db := client.NewConnection("mysql").GetMysqlConnection()
+	db := client.NewConnection(client.Database).GetMysqlConnection()
 	defer db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
@@ -43,7 +43,7 @@ func (repo *repositoryhttpdb) GetList() (listVoucher []model.Voucher, err error)
 }
 
 func (repo *repositoryhttpdb) GetVoucherByCode(code string) (voucherData model.Voucher, err error) {
-	db := client.NewConnection("mysql").GetMysqlConnection()
+	db := client.NewConnection(client.Database).GetMysqlConnection()
 	defer db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
@@ -67,7 +67,7 @@ func (repo *repositoryhttpdb) GetVoucherByCode(code string) (voucherData model.V
 }
 
 func (repo *repositoryhttpdb) Create(req []model.VoucherRequest) (response []model.Voucher, err error) {
-	db := client.NewConnection("mysql").GetMysqlConnection()
+	db := client.NewConnection(client.Database).GetMysqlConnection()
 	defer db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)

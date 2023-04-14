@@ -18,7 +18,7 @@ func NewDBHTTPRepository() *repositoryhttpdb {
 }
 
 func (repo *repositoryhttpdb) GetTransactionByNumber(transactionNumber int) (result []model.TransactionDetail, err error) {
-	db := client.NewConnection("mysql").GetMysqlConnection()
+	db := client.NewConnection(client.Database).GetMysqlConnection()
 	defer db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
@@ -90,7 +90,7 @@ func (repo *repositoryhttpdb) CreateBulkTransactionDetail(voucher model.VoucherR
         return
     }
 	
-	db := client.NewConnection("mysql").GetMysqlConnection()
+	db := client.NewConnection(client.Database).GetMysqlConnection()
 	defer db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)

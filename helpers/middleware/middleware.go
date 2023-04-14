@@ -8,14 +8,17 @@ import (
 	logger "sales-go/helpers/logging"
 )
 
-func LoggingHandler(handler http.Handler) http.Handler {
+func LoggingHandler(mux http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger.Infof(fmt.Sprintf("Started %s localhost:5000%s", r.Method, r.URL.Path))
 
-		handler.ServeHTTP(w, r)
+		fmt.Println("MIDDLEWARE 1")
+		mux.ServeHTTP(w, r)
+		fmt.Println("MIDDLEWARE 2")
 
 		// handle panic error middleware
 		defer func() {
+			fmt.Println("MIDDLEWARE 3")
 			err := recover()
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)

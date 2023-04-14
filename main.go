@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/joho/godotenv"
 	"github.com/swaggest/swgui/v3emb"
 
 	"sales-go/config"
@@ -27,6 +28,8 @@ import (
 )
 
 func main() {
+	godotenv.Load()
+
 	config, err := config.LoadConfig()
 	if err != nil {
 		panic(err.Error())
@@ -64,7 +67,9 @@ func DBHTTPServer(config *config.Config, productHandler product.Handlerer, trans
 	mux := http.NewServeMux()
 	mux.HandleFunc("/product", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
-			productHandler.GetList(w, r)
+			panic(fmt.Errorf("TEST ERROR HAHA"))
+	
+			//productHandler.GetList(w, r)
 		} else if r.Method == "POST" {
 			productHandler.Create(w, r)
 		}
