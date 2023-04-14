@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/swaggest/swgui/v3emb"
 	"sales-go/config"
 	"sales-go/docs"
 	"sales-go/helpers/middleware"
@@ -21,8 +23,6 @@ import (
 	productRepo "sales-go/repository/product"
 	transactionRepo "sales-go/repository/transaction"
 	voucherRepo "sales-go/repository/voucher"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -86,16 +86,12 @@ func DBHTTPServer(config *config.Config, productHandler product.Handlerer, trans
 	middleware := middleware.Use(middleware.LoggingHandler(mux))
 
 	// swagger
-	docs.SwaggerInfo.Title = "Phincon Attendance App Rest API"
-	docs.SwaggerInfo.Description = "Phincon Attendance App Rest API"
+	docs.SwaggerInfo.Title = "Sales Rest API"
+	docs.SwaggerInfo.Description = "Sales Rest API"
 	docs.SwaggerInfo.Version = "1.0"
 	docs.SwaggerInfo.Host = "localhost"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
-	doc, err := swag.ReadDoc()
-	if err != nil {
-		panic(err)
-	}
-	c.Writer.Write([]byte(doc))
+	mux.Handle("/", v3emb.NewHandler("Sales REST API", "/docs/swagger.json", "/"))
 
 	server := http.Server{
 		Addr: config.Port,

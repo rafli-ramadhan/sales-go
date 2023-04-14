@@ -5,3 +5,7 @@
 ```bash
 go run main.go
 ```
+
+```bash
+swgui-server -port 8080
+```

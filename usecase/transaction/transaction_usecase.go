@@ -65,7 +65,7 @@ func (uc *usecase) CreateBulkTransactionDetail(voucherCode string, req model.Tra
 			Total:    product.Price * float64(transaction.Quantity),
 		})
 	}
-	
+
 	var voucher model.VoucherRequest
 	if voucherCode == "" {
 		voucherData, err := uc.voucherrepo.GetVoucherByCode(voucherCode)

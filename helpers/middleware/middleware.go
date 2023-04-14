@@ -14,7 +14,7 @@ func LoggingHandler(handler http.Handler) http.Handler {
 
 		handler.ServeHTTP(w, r)
 
-		// handle error
+		// handle panic error middleware
 		defer func() {
 			err := recover()
 			if err != nil {
