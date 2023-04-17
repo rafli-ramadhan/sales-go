@@ -41,7 +41,7 @@ func (handler *dbhttphandler) Create(w http.ResponseWriter, r *http.Request) {
 			rest.ResponseError(w, r, http.StatusBadRequest, err)
 			return
 		} else {
-			rest.ResponseData(w, r, http.StatusInternalServerError, err)
+			rest.ResponseError(w, r, http.StatusInternalServerError, err)
 			return
 		}
 	}

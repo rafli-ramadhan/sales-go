@@ -35,11 +35,25 @@ func main() {
 		panic(err.Error())
 	}
 
-	switch config.Storage {
-	case "db" :
-		productRepository := productRepo.NewDBHTTPRepository()
-		transactionRepository := transactionRepo.NewDBHTTPRepository()
-		voucherRepository := voucherRepo.NewDBHTTPRepository()
+	switch config.Database {
+	case "mysql" :
+		productRepository := productRepo.NewMySQLHTTPRepository()
+		transactionRepository := transactionRepo.NewMySQLHTTPRepository()
+		voucherRepository := voucherRepo.NewMySQLHTTPRepository()
+		
+		productUsecase := productUsecase.NewDBHTTPUsecase(productRepository)
+		transactionUsecase := transactionUsecase.NewDBHTTPUsecase(transactionRepository, productRepository, voucherRepository)
+		voucherUsecase := voucherUsecase.NewDBHTTPUsecase(voucherRepository)
+
+		productHandler := product.NewDBHTTPHandler(productUsecase)
+		transactionHandler := transaction.NewDBHTTPHandler(transactionUsecase)
+		voucherHandler := voucher.NewDBHTTPHandler(voucherUsecase)
+
+		DBHTTPServer(config, productHandler, transactionHandler, voucherHandler)
+	case "postgresql" :
+		productRepository := productRepo.NewPostgreSQLHTTPRepository()
+		transactionRepository := transactionRepo.NewPostgreSQLHTTPRepository()
+		voucherRepository := voucherRepo.NewPostgreSQLHTTPRepository()
 		
 		productUsecase := productUsecase.NewDBHTTPUsecase(productRepository)
 		transactionUsecase := transactionUsecase.NewDBHTTPUsecase(transactionRepository, productRepository, voucherRepository)
@@ -51,9 +65,9 @@ func main() {
 
 		DBHTTPServer(config, productHandler, transactionHandler, voucherHandler)
 	case "json":
-		productRepository := productRepo.NewRepository()
-		transactionRepository := transactionRepo.NewRepository()
-		voucherRepository := voucherRepo.NewRepository()
+		productRepository := productRepo.NewJsonRepository()
+		transactionRepository := transactionRepo.NewJsonRepository()
+		voucherRepository := voucherRepo.NewJsonRepository()
 
 		productHandler := product.NewJsonHTTPHandler(productRepository)
 		transactionHandler := transaction.NewJsonHTTPHandler(transactionRepository, productRepository, voucherRepository)
@@ -67,9 +81,7 @@ func DBHTTPServer(config *config.Config, productHandler product.Handlerer, trans
 	mux := http.NewServeMux()
 	mux.HandleFunc("/product", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
-			panic(fmt.Errorf("TEST ERROR HAHA"))
-	
-			//productHandler.GetList(w, r)
+			productHandler.GetList(w, r)
 		} else if r.Method == "POST" {
 			productHandler.Create(w, r)
 		}

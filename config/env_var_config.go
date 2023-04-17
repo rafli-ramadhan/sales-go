@@ -7,8 +7,8 @@ import (
 )
 
 type Config struct {
-	Port    string `mapStructure:"port"`
-	Storage string `mapStructure:"storage"`
+	Port     string `mapStructure:"PORT"`
+	Database string `mapStructure:"DATABASE"`
 }
 
 func LoadConfig() (*Config, error) {

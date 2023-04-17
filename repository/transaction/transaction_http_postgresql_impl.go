@@ -3,7 +3,6 @@ package transaction
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"sales-go/db"
@@ -11,20 +10,20 @@ import (
 	"sales-go/model"
 )
 
-type repositoryhttpdb struct {}
+type repositoryhttppostgresql struct {}
 
-func NewDBHTTPRepository() *repositoryhttpdb {
-	return &repositoryhttpdb{}
+func NewPostgreSQLHTTPRepository() *repositoryhttppostgresql {
+	return &repositoryhttppostgresql{}
 }
 
-func (repo *repositoryhttpdb) GetTransactionByNumber(transactionNumber int) (result []model.TransactionDetail, err error) {
+func (repo *repositoryhttppostgresql) GetTransactionByNumber(transactionNumber int) (result []model.TransactionDetail, err error) {
 	db := client.NewConnection(client.Database).GetMysqlConnection()
 	defer db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	
-	query := `SELECT id, transaction_number, name, quantity, discount, total, pay FROM transaction WHERE transaction_number = ?`
+	query := `SELECT id, transaction_number, name, quantity, discount, total, pay FROM transaction WHERE transaction_number = $1`
 	stmt, err := db.PrepareContext(ctx, query)
 	if err != nil {
 		return
@@ -41,7 +40,7 @@ func (repo *repositoryhttpdb) GetTransactionByNumber(transactionNumber int) (res
 	}
 
 	// GetTransactionDetail
-	query2 := `SELECT id, item, price, quantity, total FROM transaction_detail WHERE transaction_id = ?`
+	query2 := `SELECT id, item, price, quantity, total FROM transaction_detail WHERE transaction_id = $1`
 	stmt2, err := db.PrepareContext(ctx, query2)
 	if err != nil {
 		return
@@ -63,7 +62,7 @@ func (repo *repositoryhttpdb) GetTransactionByNumber(transactionNumber int) (res
 	return
 }
 
-func (repo *repositoryhttpdb) CreateBulkTransactionDetail(voucher model.VoucherRequest, listTransactionDetail []model.TransactionDetail, req model.TransactionDetailBulkRequest) (res []model.TransactionDetail, err error) {
+func (repo *repositoryhttppostgresql) CreateBulkTransactionDetail(voucher model.VoucherRequest, listTransactionDetail []model.TransactionDetail, req model.TransactionDetailBulkRequest) (res []model.TransactionDetail, err error) {
 	// sum all quantity and total
 	var quantity int
 	var total float64
@@ -101,39 +100,30 @@ func (repo *repositoryhttpdb) CreateBulkTransactionDetail(voucher model.VoucherR
 		return
 	}
 
-	fmt.Println("PASS 1")
-	query := `INSERT INTO transaction (transaction_number, name, quantity, discount, total, pay) values (?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO transaction (transaction_number, name, quantity, discount, total, pay) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
 	stmt, err := db.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}
 
-	resInsert, err := stmt.ExecContext(ctx, randomInteger, req.Name, quantity, discount, total, req.Pay)
+	var lastIDTransaction int32
+	err = stmt.QueryRowContext(ctx, randomInteger, req.Name, quantity, discount, total, req.Pay).Scan(&lastIDTransaction)
 	if err != nil {
 		trx.Rollback()
 		return
 	}
 
-	lastIDTransaction, err := resInsert.LastInsertId()
-	if err != nil {
-		return
-	}
-
-	query2 := `INSERT INTO transaction_detail (transaction_id, item, price, quantity, total) values (?, ?, ?, ?, ?)`
+	query2 := `INSERT INTO transaction_detail (transaction_id, item, price, quantity, total) values ($1, $2, $3, $4, $5) RETURNING id`
 	stmt2, err := db.PrepareContext(ctx, query2)
 	if err != nil {
 		return
 	}
 
 	for _, v := range listTransactionDetail {
-		res2, err := stmt2.ExecContext(ctx, lastIDTransaction, v.Item, v.Price, v.Quantity, v.Total)
+		var lastID int32
+		err := stmt2.QueryRowContext(ctx, lastIDTransaction, v.Item, v.Price, v.Quantity, v.Total).Scan(&lastID)
 		if err != nil {
 			trx.Rollback()
-			return []model.TransactionDetail{}, err
-		}
-
-		lastID, err := res2.LastInsertId()
-		if err != nil {
 			return []model.TransactionDetail{}, err
 		}
 

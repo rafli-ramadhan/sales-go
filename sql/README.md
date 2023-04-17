@@ -1,6 +1,6 @@
 # Create Table in MySQL or PostgreSQL
 
-## This directory is for storing the SQL code used to create the tables in MySQL or PostgreSQL that are required in this repo
+This directory is for storing the SQL code used to create the tables in MySQL or PostgreSQL that are required in this repo
 
 ## Prerequisite
 
@@ -9,7 +9,7 @@
 
 ## Usage
 
-Copy each code from SQL_1 to SQL_n from MySQL or PostgreSQL code in another DBeaver or RDBMS, and then run it.
+Copy each code from code number 1 to end from MySQL or PostgreSQL folder in DBeaver or another RDBMS, and then execute it.
 
 ![open_sql_script_in_dbeaver](./images/sql_script_dbeaver.png)
 

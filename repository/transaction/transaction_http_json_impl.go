@@ -12,7 +12,7 @@ import (
 
 type repository struct {}
 
-func NewRepository() *repository {
+func NewJsonRepository() *repository {
 	return &repository{}
 }
 
