@@ -19,23 +19,27 @@ func newLoggrus() {
 	})
 }
 
-func Infof(infoMsg string, req *http.Request) {
+func Infof(infoMsg string, r *http.Request) {
 	fields := logrus.Fields{}
-	if req.Method != "" {
-		fields["Method"] = req.Method
+	if r.Method != "" {
+		fields["Host"] = r.Host
+		fields["Method"] = r.Method
+		fields["URL"] = r.RequestURI
 	}
 
 	newLoggrus()
 	log.WithFields(fields).Info(infoMsg)
 }
 
-func Errorf(err error, req *http.Request) {
+func Errorf(err error, r *http.Request) {
 	fields := logrus.Fields{}
-	if req.Method != "" {
-		fields["Method"] = req.Method
+	if r.Method != "" {
+		fields["Host"] = r.Host
+		fields["Method"] = r.Method
+		fields["URL"] = r.RequestURI
 	}
-	if req.Body != nil {
-		fields["Params"] = req.Body
+	if r.Body != nil {
+		fields["Params"] = r.Body
 	}
 
 	newLoggrus()
