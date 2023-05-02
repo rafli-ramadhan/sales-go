@@ -51,11 +51,13 @@ func (handler *jsonhttphandler) Create(w http.ResponseWriter, r *http.Request) {
 	for _, req := range req {
 		_, err = handler.repo.GetVoucherByCode(req.Code)
 		if err != nil {
-			log.Print(err.Error())
+			continue
+		} else if err == nil {
 			w.WriteHeader(http.StatusConflict)
-			w.Write([]byte("message : voucher already exist, pelase input another product name."))
+			w.Write([]byte("message : voucher already exist, pelase input another voucher code."))
 			return
 		}
+
 		if req.Persen <= 0 {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("message : persen must be > 0"))

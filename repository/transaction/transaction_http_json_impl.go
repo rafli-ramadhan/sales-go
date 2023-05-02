@@ -10,13 +10,13 @@ import (
 	"time"
 )
 
-type repository struct {}
+type repositoryjson struct {}
 
-func NewJsonRepository() *repository {
-	return &repository{}
+func NewJsonRepository() *repositoryjson {
+	return &repositoryjson{}
 }
 
-func (repo *repository) getLastID() (lastID int, err error) {
+func (repo *repositoryjson) getLastID() (lastID int, err error) {
 	listTransaction, err := repo.GetListTransactionDetail()
 	if err != nil {
 		return
@@ -30,7 +30,7 @@ func (repo *repository) getLastID() (lastID int, err error) {
 	return
 }
 
-func (repo *repository) GetListTransactionDetail() (res []model.TransactionDetail, err error) {
+func (repo *repositoryjson) GetListTransactionDetail() (res []model.TransactionDetail, err error) {
 	reader, err := os.Open("data/transaction.json")
 	if err != nil {
 		err = errors.New(fmt.Sprintf("[ERROR] os open transaction detail json %s", err.Error()))
@@ -43,7 +43,7 @@ func (repo *repository) GetListTransactionDetail() (res []model.TransactionDetai
 	return
 }
 
-func (repo *repository) UpdateJSONTransactionDetail(req []model.TransactionDetail) (err error) {
+func (repo *repositoryjson) UpdateJSONTransactionDetail(req []model.TransactionDetail) (err error) {
 	writerJson, err := os.Create("data/transaction.json")
 	if err != nil {
 		err = errors.New(fmt.Sprintf("[ERROR] os create transaction json %s", err.Error()))
@@ -63,7 +63,7 @@ func (repo *repository) UpdateJSONTransactionDetail(req []model.TransactionDetai
 	return
 }
 
-func (repo *repository) GetTransactionByNumber(transactionNumber int) (listSelectedTransaction []model.TransactionDetail, err error) {
+func (repo *repositoryjson) GetTransactionByNumber(transactionNumber int) (listSelectedTransaction []model.TransactionDetail, err error) {
 	listTransaction, err := repo.GetListTransactionDetail()
 	if err != nil {
 		return
@@ -77,7 +77,7 @@ func (repo *repository) GetTransactionByNumber(transactionNumber int) (listSelec
 	return
 }
 
-func (repo *repository) CreateBulkTransactionDetail(voucher model.VoucherRequest, listTransactionDetail []model.TransactionDetail, req model.TransactionDetailBulkRequest) (res []model.TransactionDetail, err error) {
+func (repo *repositoryjson) CreateBulkTransactionDetail(voucher model.VoucherRequest, listTransactionDetail []model.TransactionDetail, req model.TransactionDetailBulkRequest) (res []model.TransactionDetail, err error) {
 	listTransaction, err := repo.GetListTransactionDetail()
 	if err != nil {
 		return

@@ -22,7 +22,8 @@ func (repo *repositoryhttppostgresql) GetTransactionByNumber(transactionNumber i
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	
+
+	// GetTransaction
 	query := `SELECT id, transaction_number, name, quantity, discount, total, pay FROM transaction WHERE transaction_number = $1`
 	stmt, err := db.PrepareContext(ctx, query)
 	if err != nil {

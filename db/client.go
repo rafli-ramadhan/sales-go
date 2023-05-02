@@ -3,6 +3,7 @@ package client
 import (
 	"database/sql"
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
@@ -18,6 +19,7 @@ var (
 	conDB 				= config.NewConfig()
 	connString string 	= ""
 	Database 			= os.Getenv("DATABASE")
+	req					= new(http.Request)
 )
 
 type dbOption struct {
@@ -45,14 +47,14 @@ func (dbOpt dbOption) GetMysqlConnection() (db *sql.DB) {
 
 	db, err := sql.Open(driver, connString)
 	if err != nil {
-		logger.Errorf(fmt.Errorf("unable to connect to database: %v", err))
+		logger.Errorf(fmt.Errorf("unable to connect to database: %v", err), req)
 		panic(err)
 	}
 
 	if dbOpt.Database == "mysql" {
-		logger.Infof(fmt.Sprintf("Running %s on %s on port %s\n", dbOpt.Database, conDB.MySQL.Host, conDB.MySQL.Port))
+		logger.Infof(fmt.Sprintf("Running %s on %s on port %s\n", dbOpt.Database, conDB.MySQL.Host, conDB.MySQL.Port), req)
 	} else if dbOpt.Database == "postgresql" {
-		logger.Infof(fmt.Sprintf("Running %s on %s on port %s\n", dbOpt.Database, conDB.PostgreSQL.Host, conDB.PostgreSQL.Port))
+		logger.Infof(fmt.Sprintf("Running %s on %s on port %s\n", dbOpt.Database, conDB.PostgreSQL.Host, conDB.PostgreSQL.Port), req)
 	} 
 
 	db.SetMaxIdleConns(2)

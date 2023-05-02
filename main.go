@@ -3,12 +3,13 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/swaggest/swgui/v3emb"
+	// "github.com/swaggest/swgui/v3emb"
 
 	"sales-go/config"
-	"sales-go/docs"
+	"sales-go/helpers/clearscreen"
 	"sales-go/helpers/middleware"
 
 	// handler
@@ -74,6 +75,16 @@ func main() {
 		voucherHandler := voucher.NewJsonHTTPHandler(voucherRepository)
 
 		JsonHTTPServer(config, productHandler, transactionHandler, voucherHandler)
+	case "cli":
+		productRepository := productRepo.NewCLIRepository()
+		transactionRepository := transactionRepo.NewCLIRepository()
+		voucherRepository := voucherRepo.NewCLIRepository()
+
+		productHandler := product.NewJsonHTTPHandler(productRepository)
+		transactionHandler := transaction.NewJsonHTTPHandler(transactionRepository, productRepository, voucherRepository)
+		voucherHandler := voucher.NewJsonHTTPHandler(voucherRepository)
+
+		Menu(productHandler, transactionHandler, voucherHandler)
 	}
 }
 
@@ -101,15 +112,7 @@ func DBHTTPServer(config *config.Config, productHandler product.Handlerer, trans
 		}
 	})
 
-	middleware := middleware.Use(middleware.LoggingHandler(mux))
-
-	// swagger
-	docs.SwaggerInfo.Title = "Sales Rest API"
-	docs.SwaggerInfo.Description = "Sales Rest API"
-	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "localhost"
-	docs.SwaggerInfo.Schemes = []string{"http", "https"}
-	mux.Handle("/", v3emb.NewHandler("Sales REST API", "/docs/swagger.json", "/"))
+	middleware := middleware.Use(middleware.LoggingMiddleware(mux))
 
 	server := http.Server{
 		Addr: config.Port,
@@ -178,38 +181,35 @@ func Menu(productHandler product.Handlerer, transactionHandler transaction.Handl
 	fmt.Println("Input menu : ")
 	fmt.Scanln(&menu)
 
-	/*
+	w := new(http.ResponseWriter)
+	r := new(*http.Request)
 	switch menu {
 	case 1:
-		productHandler.Create()
-		helper.ClearScreeen()
+		productHandler.Create(*w, *r)
+		clearscreen.ClearScreeen()
 		Menu(productHandler, transactionHandler, voucherHandler)
 	case 2:
-		voucherHandler.Create()
-		helper.ClearScreeen()
+		voucherHandler.Create(*w, *r)
+		clearscreen.ClearScreeen()
 		Menu(productHandler, transactionHandler, voucherHandler)
 	case 3:
-		transactionHandler.CreateTransaction()
-		helper.ClearScreeen()
+		transactionHandler.CreateBulkTransactionDetail(*w, *r)
+		clearscreen.ClearScreeen()
 		Menu(productHandler, transactionHandler, voucherHandler)
 	case 4:
-		productHandler.GetList()
-		helper.ClearScreeen()
+		productHandler.GetList(*w, *r)
+		clearscreen.ClearScreeen()
 		Menu(productHandler, transactionHandler, voucherHandler)
 	case 5:
-		voucherHandler.GetList()
-		helper.ClearScreeen()
+		voucherHandler.GetList(*w, *r)
+		clearscreen.ClearScreeen()
 		Menu(productHandler, transactionHandler, voucherHandler)
 	case 6:
-		transactionHandler.GetList()
-		helper.ClearScreeen()
+		transactionHandler.GetTransactionByNumber(*w, *r)
+		clearscreen.ClearScreeen()
 		Menu(productHandler, transactionHandler, voucherHandler)
 	case 7:
-		transactionHandler.GetTransactionByNumber()
-		helper.ClearScreeen()
-		Menu(productHandler, transactionHandler, voucherHandler)
-	case 8:
 		// Conventionally, code zero indicates success, non-zero an error.
 		os.Exit(1)
-	}*/
+	}
 }

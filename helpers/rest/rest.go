@@ -14,7 +14,7 @@ type RestError struct {
 }
 
 func ResponseError(w http.ResponseWriter, r *http.Request, status int, err error) {
-	logger.Errorf(err)
+	logger.Errorf(err, r)
 
 	response := RestError{
 		Status:  status,

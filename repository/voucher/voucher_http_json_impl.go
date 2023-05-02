@@ -8,13 +8,13 @@ import (
 	"sales-go/model"
 )
 
-type repository struct {}
+type repositoryjson struct {}
 
-func NewJsonRepository() *repository {
-	return &repository{}
+func NewJsonRepository() *repositoryjson {
+	return &repositoryjson{}
 }
 
-func (repo *repository) getLastID() (lastID int, err error) {
+func (repo *repositoryjson) getLastID() (lastID int, err error) {
 	listVoucher, err := repo.GetList()
 	if err != nil {
 		return
@@ -28,7 +28,7 @@ func (repo *repository) getLastID() (lastID int, err error) {
 	return
 }
 
-func (repo *repository) GetList() (listVoucher []model.Voucher, err error) {
+func (repo *repositoryjson) GetList() (listVoucher []model.Voucher, err error) {
 	reader, err := os.Open("data/voucher.json")
 	if err != nil {
 		err = errors.New(fmt.Sprintf("[ERROR] os open voucher json : %s", err.Error()))
@@ -42,7 +42,7 @@ func (repo *repository) GetList() (listVoucher []model.Voucher, err error) {
 	return
 }
 
-func (repo *repository) updateJSON(listVoucher []model.Voucher) (err error) {
+func (repo *repositoryjson) updateJSON(listVoucher []model.Voucher) (err error) {
 	writerJson, err := os.Create("data/voucher.json")
 	if err != nil {
 		err = errors.New(fmt.Sprintf("[ERROR] os create voucher txt : %s", err.Error()))
@@ -62,7 +62,7 @@ func (repo *repository) updateJSON(listVoucher []model.Voucher) (err error) {
 	return
 }
 
-func (repo *repository) GetVoucherByCode(code string) (voucherData model.Voucher, err error) {
+func (repo *repositoryjson) GetVoucherByCode(code string) (voucherData model.Voucher, err error) {
 	listVoucher, err := repo.GetList()
 	if err != nil {
 		return
@@ -76,13 +76,13 @@ func (repo *repository) GetVoucherByCode(code string) (voucherData model.Voucher
 
 	emptyStruct := model.Voucher{}
 	if voucherData == emptyStruct {
-		err = errors.New("Voucher not found")
+		err = errors.New("voucher not found")
 		return
 	}
 	return
 }
 
-func (repo *repository) Create(req []model.VoucherRequest) (response []model.Voucher, err error) {
+func (repo *repositoryjson) Create(req []model.VoucherRequest) (response []model.Voucher, err error) {
 	listVoucher, err := repo.GetList()
 	if err != nil {
 		return

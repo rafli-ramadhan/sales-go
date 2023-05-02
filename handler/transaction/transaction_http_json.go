@@ -6,14 +6,12 @@ import (
 	"log"
 	"net/http"
 
-	//"math/rand"
 	"sales-go/model"
 	"sales-go/repository/product"
 	"sales-go/repository/transaction"
 	"sales-go/repository/voucher"
 	"strconv"
 	"strings"
-	//"time"
 )
 
 type jsonhttphandler struct {
@@ -112,6 +110,7 @@ func (handler *jsonhttphandler) CreateBulkTransactionDetail(w http.ResponseWrite
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(fmt.Sprintf("message : %s", err.Error())))
 			log.Println("[ERROR] get voucher by code :", err.Error())
+			return
 		} else if err == nil {
 			voucherData = model.VoucherRequest{
 				Code:   voucher.Code,

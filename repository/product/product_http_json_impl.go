@@ -8,13 +8,13 @@ import (
 	"sales-go/model"
 )
 
-type repository struct{}
+type repositoryjson struct{}
 
-func NewJsonRepository() *repository {
-	return &repository{}
+func NewJsonRepository() *repositoryjson {
+	return &repositoryjson{}
 }
 
-func (repo *repository) getLastID() (lastID int, err error) {
+func (repo *repositoryjson) getLastID() (lastID int, err error) {
 	listProduct, err := repo.GetList()
 	if err != nil {
 		return
@@ -28,7 +28,7 @@ func (repo *repository) getLastID() (lastID int, err error) {
 	return
 }
 
-func (repo *repository) GetList() (listProduct []model.Product, err error) {
+func (repo *repositoryjson) GetList() (listProduct []model.Product, err error) {
 	reader, err := os.Open("data/product.json")
 	if err != nil {
 		err = fmt.Errorf("[ERROR] os open product json : %s", err.Error())
@@ -41,7 +41,7 @@ func (repo *repository) GetList() (listProduct []model.Product, err error) {
 	return
 }
 
-func (repo *repository) updateJSON(listProduct []model.Product) (err error) {
+func (repo *repositoryjson) updateJSON(listProduct []model.Product) (err error) {
 	writerJson, err := os.Create("data/product.json")
 	if err != nil {
 		err = fmt.Errorf("[ERROR] os create product json : %s", err.Error())
@@ -61,7 +61,7 @@ func (repo *repository) updateJSON(listProduct []model.Product) (err error) {
 	return
 }
 
-func (repo *repository) GetProductByName(name string) (productData model.Product, err error) {
+func (repo *repositoryjson) GetProductByName(name string) (productData model.Product, err error) {
 	listProduct, err := repo.GetList()
 	if err != nil {
 		return
@@ -81,7 +81,7 @@ func (repo *repository) GetProductByName(name string) (productData model.Product
 	return
 }
 
-func (repo *repository) Create(req []model.ProductRequest) (result []model.Product, err error) {
+func (repo *repositoryjson) Create(req []model.ProductRequest) (result []model.Product, err error) {
 	listProduct, err := repo.GetList()
 	if err != nil {
 		return
