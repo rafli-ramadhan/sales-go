@@ -25,16 +25,19 @@ func (handler gindbhttphandler) GetTransactionByNumber(ctx *gin.Context) {
 	transactionNumberStr, ok := ctx.GetQuery("transaction_id")
 	if !ok {
 		rest.ResponseError(ctx, http.StatusBadRequest, fmt.Errorf("transaction number should not be empty"))
+		return
 	}
 
 	transactionNumber, err := strconv.Atoi(transactionNumberStr)
 	if err != nil {
 		rest.ResponseError(ctx, http.StatusBadRequest, err)
+		return
 	}
 
 	res, err := handler.usecase.GetTransactionByNumber(transactionNumber)
 	if err != nil {
 		rest.ResponseError(ctx, http.StatusInternalServerError, err)
+		return
 	}
 	rest.ResponseData(ctx, http.StatusOK, res)
 }

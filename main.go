@@ -45,9 +45,14 @@ func main() {
 			panic(err)
 		}
 
-		productRepository := productRepo.NewPostgreSQLGormHTTPRepository(db)
-		transactionRepository := transactionRepo.NewPostgreSQLGormHTTPRepository(db)
-		voucherRepository := voucherRepo.NewPostgreSQLGormHTTPRepository(db)
+		DB, err := db.DB()
+		if err != nil {
+			panic(err)
+		}
+
+		productRepository := productRepo.NewPostgreSQLHTTPRepository(DB)
+		transactionRepository := transactionRepo.NewPostgreSQLHTTPRepository(DB)
+		voucherRepository := voucherRepo.NewPostgreSQLHTTPRepository(DB)
 
 		productUsecase := productUsecase.NewDBHTTPUsecase(productRepository)
 		transactionUsecase := transactionUsecase.NewDBHTTPUsecase(transactionRepository, productRepository, voucherRepository)

@@ -7,14 +7,15 @@ import (
 	"os"
 	"time"
 
+	"sales-go/config"
+	"sales-go/helpers/logging"
+
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"sales-go/config"
-	"sales-go/helpers/logging"
 )
 
 var (
@@ -71,7 +72,7 @@ func (dbOpt dbOption) GetDBConnection() (db *sql.DB, err error) {
 
 func (dbOpt dbOption) GetDBGormConnection() (*gorm.DB, error) {
 	var connString string
-	if dbOpt.Database == "mysql-gin-gorm" {
+	if dbOpt.Database == "mysql" {
 		// "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
 		connString = fmt.Sprintf("%s:%s@tcp(%s:%v)/%v?charset=utf8mb4&parseTime=True&loc=Local", 
 			conDB.MySQL.Username, 
@@ -80,7 +81,7 @@ func (dbOpt dbOption) GetDBGormConnection() (*gorm.DB, error) {
 			conDB.MySQL.Port, 
 			conDB.MySQL.Database,
 		)
-	} else if dbOpt.Database == "postgresql-gin-gorm" {
+	} else if dbOpt.Database == "postgresql" {
 		// "host=localhost user=gorm password=gorm dbname=gorm port=9920 sslmode=disable TimeZone=Asia/Shanghai"
 		connString = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
 			conDB.PostgreSQL.Host,
@@ -91,31 +92,17 @@ func (dbOpt dbOption) GetDBGormConnection() (*gorm.DB, error) {
 		)
 	}
 
-	// customize using mysql.New()
-	// db, err := gorm.Open(
-	// 	mysql.New(
-	// 		mysql.Config{
-	// 			DriverName: "mysql",
-	// 			DSN:		connString,
-	// 		},
-	// 	), &gorm.Config{
-	// 		Logger: newLogger,
-	// },
-	// )
-
 	db, err := gorm.Open(
 		postgres.Open(connString), &gorm.Config{
 			Logger: 				logger.Default.LogMode(logger.Info),
 			SkipDefaultTransaction: true,
-			PrepareStmt:			true,
+			PrepareStmt:			false,
 		},
 	)
 	if err != nil {
 		logging.Errorf(fmt.Errorf("unable to connect to database: %v", err), req)
 		return nil, err
 	}
-
-	db.Begin()
 
 	logging.Infof(fmt.Sprintf("Running mysql on %s on port %s\n", conDB.MySQL.Host, conDB.MySQL.Port), req)
 

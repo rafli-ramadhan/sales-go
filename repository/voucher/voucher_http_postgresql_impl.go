@@ -18,8 +18,6 @@ func NewPostgreSQLHTTPRepository(db *sql.DB) *repositoryhttppostgresql {
 }
 
 func (repo *repositoryhttppostgresql) GetList() (listVoucher []model.Voucher, err error) {
-	defer repo.db.Close()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
@@ -44,8 +42,6 @@ func (repo *repositoryhttppostgresql) GetList() (listVoucher []model.Voucher, er
 }
 
 func (repo *repositoryhttppostgresql) GetVoucherByCode(code string) (voucherData model.Voucher, err error) {
-	defer repo.db.Close()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
@@ -67,8 +63,6 @@ func (repo *repositoryhttppostgresql) GetVoucherByCode(code string) (voucherData
 }
 
 func (repo *repositoryhttppostgresql) Create(req []model.VoucherRequest) (response []model.Voucher, err error) {
-	defer repo.db.Close()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 

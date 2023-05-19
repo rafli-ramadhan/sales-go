@@ -18,8 +18,6 @@ func NewPostgreSQLHTTPRepository(db *sql.DB) *repositoryhttppostgresql {
 }
 
 func (repo *repositoryhttppostgresql) GetList() (listProduct []model.Product, err error) {
-	defer repo.db.Close()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -45,8 +43,6 @@ func (repo *repositoryhttppostgresql) GetList() (listProduct []model.Product, er
 }
 
 func (repo *repositoryhttppostgresql) GetProductByName(name string) (productData model.Product, err error) {
-	defer repo.db.Close()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -68,8 +64,6 @@ func (repo *repositoryhttppostgresql) GetProductByName(name string) (productData
 }
 
 func (repo *repositoryhttppostgresql) Create(req []model.ProductRequest) (result []model.Product, err error) {
-	defer repo.db.Close()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 

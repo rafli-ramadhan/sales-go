@@ -3,13 +3,11 @@ package transaction
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
-	"log"
+	"errors"
 	"time"
 
-	amqp "github.com/rabbitmq/amqp091-go"
-	"sales-go/config"
+	"sales-go/helpers/random"
 	"sales-go/model"
 	"sales-go/publisher"
 )
@@ -25,8 +23,6 @@ func NewPostgreSQLHTTPRepository(db *sql.DB) *repositoryhttppostgresql {
 }
 
 func (repo *repositoryhttppostgresql) GetTransactionByNumber(transactionNumber int) (result []model.TransactionDetail, err error) {
-	defer repo.db.Close()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
@@ -71,87 +67,65 @@ func (repo *repositoryhttppostgresql) GetTransactionByNumber(transactionNumber i
 }
 
 func (repo *repositoryhttppostgresql) CreateBulkTransactionDetail(voucher model.VoucherRequest, listTransactionDetail []model.TransactionDetail, req model.TransactionDetailBulkRequest) (res []model.TransactionDetail, err error) {
-	sendingData := model.TransactionDataRabbitMQ{
-		voucher, 
-		listTransactionDetail, 
-		req,
+	// generate random integer
+	randomInteger, err := random.RandomString(9)
+    if err != nil {
+        return
+    }
+
+	// sum all quantity and total
+	var quantity int
+	var total float64
+	for _, item := range listTransactionDetail {
+		quantity = quantity + item.Quantity
+		total = total + item.Total
+	}
+
+	// discount calculation
+	var discount float64
+	if total > 300000 && voucher.Persen > 0 {
+		discount = voucher.Persen/100
+		total = total*(1-discount)
+	}
+
+	if req.Pay < total {
+		err = errors.New("pay must be > total")
+		return
+	}
+	
+	data := model.TransactionRabbitMQData{
+		Name:					req.Name,
+		RandomInteger:			randomInteger,
+		Quantity:				quantity,
+		Total:					total,
+		Discount:				discount,
+		Pay:					req.Pay,
+		ListTransactionDetail:	listTransactionDetail,
 	}
 
 	// publish data to RabbitMQ
-	err = publisher.Publish(sendingData)
+	err = publisher.Publish(data)
 	if err != nil {
 		err = fmt.Errorf("error publish data to RabbitMQ : %s", err.Error())
 		return
 	}
 
-	time.Sleep(3 * time.Second)
-
-	// get response after publish data
-	config, err := config.LoadConfig()
-	if err != nil {
-		err = fmt.Errorf("failed to load config : %s", err)
-		return
+	for _, v := range data.ListTransactionDetail {
+		res = append(res,  model.TransactionDetail{
+			Item:	  v.Item,
+			Price:	  v.Price,
+			Quantity: v.Quantity,
+			Total:	  v.Total,
+			Transaction: model.Transaction{
+				TransactionNumber: data.RandomInteger,
+				Name:	  		   data.Name,
+				Quantity: 		   data.Quantity,
+				Discount: 		   data.Discount,
+				Total:	  		   data.Total,
+				Pay:	  		   data.Pay,
+			},
+		})
 	}
 
-	conn, err := amqp.Dial(config.RabbitMQURL)
-	if err != nil {
-		err = fmt.Errorf("failed to connect to RabbitMQ : %s", err.Error())
-		return
-	}
-	defer conn.Close()
-
-	ch, err := conn.Channel()
-	if err != nil {
-		err = fmt.Errorf("failed to open a channel : %s", err.Error())
-		return
-	}
-	defer ch.Close()
-
-	q, err := ch.QueueDeclare(
-		"create_transaction_response", // name
-		true,                 // durable
-		false,                // auto delete queue when unused
-		false,                // exclusive
-		false,                // no-wait
-		nil,                  // arguments
-	)
-	if err != nil {
-		err = fmt.Errorf("failed to declare a queue : %s", err)
-		return
-	}
-
-	msgs, err := ch.Consume(
-		q.Name, // queue
-		"",     // consumer
-		false,  // auto-ack
-		false,  // exclusive
-		false,  // no-local
-		false,  // no-wait
-		nil,    // args
-	)
-	if err != nil {
-		err = fmt.Errorf("failed to register a consumer : %s", err)
-		return
-	}
-
-	// worker to receive value from variable msgs
-	go func() {
-		for d := range msgs {
-			log.Printf("Received a message: %s", d.Body)
-
-			err := json.Unmarshal(d.Body, &res)
-			if err != nil {
-				break
-			}
-
-			d.Ack(false)
-		}
-		if err != nil {
-			return
-		}
-	}()
-
-	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 	return
 }
-

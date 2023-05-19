@@ -1,7 +1,6 @@
 package voucher
 
 import (
-	"log"
 	"net/http"
 	"sales-go/helpers/gin-rest"
 	"sales-go/model"
@@ -37,8 +36,6 @@ func (handler gindbhttphandler) Create(ctx *gin.Context) {
 		rest.ResponseError(ctx, http.StatusInternalServerError, err)
 		return
 	}
-
-	log.Println(req)
 
 	res, err := handler.usecase.Create(req)
 	if err != nil {
