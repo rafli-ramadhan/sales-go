@@ -10,8 +10,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"sales-go/config"
-	logger "sales-go/helpers/logging"
+	"sales-go/helpers/logging"
 )
 
 var (
@@ -33,7 +36,7 @@ func NewConnection(database string) dbOption {
 	}
 }
 
-func (dbOpt dbOption) GetMysqlConnection() (db *sql.DB) {
+func (dbOpt dbOption) GetDBConnection() (db *sql.DB, err error) {
 	var driver string
 	if dbOpt.Database == "mysql" {
 		// format : "username:password@tcp(host:port)/database_name"
@@ -46,16 +49,16 @@ func (dbOpt dbOption) GetMysqlConnection() (db *sql.DB) {
 		fmt.Println(connString)
 	}
 
-	db, err := sql.Open(driver, connString)
+	db, err = sql.Open(driver, connString)
 	if err != nil {
-		logger.Errorf(fmt.Errorf("unable to connect to database: %v", err), req)
-		panic(err)
+		logging.Errorf(fmt.Errorf("unable to connect to database: %v", err), req)
+		return
 	}
 
 	if dbOpt.Database == "mysql" {
-		logger.Infof(fmt.Sprintf("Running %s on %s on port %s\n", dbOpt.Database, conDB.MySQL.Host, conDB.MySQL.Port), req)
+		logging.Infof(fmt.Sprintf("Running %s on %s on port %s\n", dbOpt.Database, conDB.MySQL.Host, conDB.MySQL.Port), req)
 	} else if dbOpt.Database == "postgresql" {
-		logger.Infof(fmt.Sprintf("Running %s on %s on port %s\n", dbOpt.Database, conDB.PostgreSQL.Host, conDB.PostgreSQL.Port), req)
+		logging.Infof(fmt.Sprintf("Running %s on %s on port %s\n", dbOpt.Database, conDB.PostgreSQL.Host, conDB.PostgreSQL.Port), req)
 	} 
 
 	db.SetMaxIdleConns(2)
@@ -64,4 +67,57 @@ func (dbOpt dbOption) GetMysqlConnection() (db *sql.DB) {
 	db.SetConnMaxLifetime(60*time.Minute)
 
 	return
+}
+
+func (dbOpt dbOption) GetDBGormConnection() (*gorm.DB, error) {
+	var connString string
+	if dbOpt.Database == "mysql-gin-gorm" {
+		// "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+		connString = fmt.Sprintf("%s:%s@tcp(%s:%v)/%v?charset=utf8mb4&parseTime=True&loc=Local", 
+			conDB.MySQL.Username, 
+			conDB.MySQL.Password, 
+			conDB.MySQL.Host, 
+			conDB.MySQL.Port, 
+			conDB.MySQL.Database,
+		)
+	} else if dbOpt.Database == "postgresql-gin-gorm" {
+		// "host=localhost user=gorm password=gorm dbname=gorm port=9920 sslmode=disable TimeZone=Asia/Shanghai"
+		connString = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
+			conDB.PostgreSQL.Host,
+			conDB.PostgreSQL.Username,
+			conDB.PostgreSQL.Password,
+			conDB.PostgreSQL.Database,
+			conDB.PostgreSQL.Port,
+		)
+	}
+
+	// customize using mysql.New()
+	// db, err := gorm.Open(
+	// 	mysql.New(
+	// 		mysql.Config{
+	// 			DriverName: "mysql",
+	// 			DSN:		connString,
+	// 		},
+	// 	), &gorm.Config{
+	// 		Logger: newLogger,
+	// },
+	// )
+
+	db, err := gorm.Open(
+		postgres.Open(connString), &gorm.Config{
+			Logger: 				logger.Default.LogMode(logger.Info),
+			SkipDefaultTransaction: true,
+			PrepareStmt:			true,
+		},
+	)
+	if err != nil {
+		logging.Errorf(fmt.Errorf("unable to connect to database: %v", err), req)
+		return nil, err
+	}
+
+	db.Begin()
+
+	logging.Infof(fmt.Sprintf("Running mysql on %s on port %s\n", conDB.MySQL.Host, conDB.MySQL.Port), req)
+
+	return db, nil
 }

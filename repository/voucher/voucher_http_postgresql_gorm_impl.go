@@ -3,23 +3,22 @@ package voucher
 import (
 	"context"
 	"database/sql"
+	"gorm.io/gorm"
 	"sales-go/model"
 	"time"
 )
 
-type repositoryhttppostgresql struct {
-	db *sql.DB
+type repositoryhttpgormpostgresql struct {
+	db *gorm.DB
 }
 
-func NewPostgreSQLHTTPRepository(db *sql.DB) *repositoryhttppostgresql {
-	return &repositoryhttppostgresql{
+func NewPostgreSQLGormHTTPRepository(db *gorm.DB) *repositoryhttpgormpostgresql {
+	return &repositoryhttpgormpostgresql{
 		db: db,
 	}
 }
 
-func (repo *repositoryhttppostgresql) GetList() (listVoucher []model.Voucher, err error) {
-	defer repo.db.Close()
-
+func (repo *repositoryhttpgormpostgresql) GetList() (listVoucher []model.Voucher, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
@@ -43,9 +42,7 @@ func (repo *repositoryhttppostgresql) GetList() (listVoucher []model.Voucher, er
 	return
 }
 
-func (repo *repositoryhttppostgresql) GetVoucherByCode(code string) (voucherData model.Voucher, err error) {
-	defer repo.db.Close()
-
+func (repo *repositoryhttpgormpostgresql) GetVoucherByCode(code string) (voucherData model.Voucher, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
@@ -66,9 +63,7 @@ func (repo *repositoryhttppostgresql) GetVoucherByCode(code string) (voucherData
 	return
 }
 
-func (repo *repositoryhttppostgresql) Create(req []model.VoucherRequest) (response []model.Voucher, err error) {
-	defer repo.db.Close()
-
+func (repo *repositoryhttpgormpostgresql) Create(req []model.VoucherRequest) (response []model.Voucher, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 

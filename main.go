@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	// "github.com/swaggest/swgui/v3emb"
 
+	"sales-go/db"
 	"sales-go/config"
 	"sales-go/helpers/clearscreen"
 	"sales-go/helpers/middleware"
@@ -38,10 +39,34 @@ func main() {
 	}
 
 	switch config.App {
-	case "postgresql-gin":
-		productRepository := productRepo.NewPostgreSQLHTTPRepository()
-		transactionRepository := transactionRepo.NewPostgreSQLHTTPRepository()
-		voucherRepository := voucherRepo.NewPostgreSQLHTTPRepository()
+	case "postgresql-gin-gorm":		
+		db, err := client.NewConnection(client.Database).GetDBGormConnection()
+		if err != nil {
+			panic(err)
+		}
+
+		productRepository := productRepo.NewPostgreSQLGormHTTPRepository(db)
+		transactionRepository := transactionRepo.NewPostgreSQLGormHTTPRepository(db)
+		voucherRepository := voucherRepo.NewPostgreSQLGormHTTPRepository(db)
+
+		productUsecase := productUsecase.NewDBHTTPUsecase(productRepository)
+		transactionUsecase := transactionUsecase.NewDBHTTPUsecase(transactionRepository, productRepository, voucherRepository)
+		voucherUsecase := voucherUsecase.NewDBHTTPUsecase(voucherRepository)
+
+		productHandler := product.NewGinDBHTTPHandler(productUsecase)
+		transactionHandler := transaction.NewGinDBHTTPHandler(transactionUsecase)
+		voucherHandler := voucher.NewGinDBHTTPHandler(voucherUsecase)
+
+		DBGinHTTPServer(config, productHandler, transactionHandler, voucherHandler)
+	case "postgresql-gin":		
+		db, err := client.NewConnection(client.Database).GetDBConnection()
+		if err != nil {
+			panic(err)
+		}
+
+		productRepository := productRepo.NewPostgreSQLHTTPRepository(db)
+		transactionRepository := transactionRepo.NewPostgreSQLHTTPRepository(db)
+		voucherRepository := voucherRepo.NewPostgreSQLHTTPRepository(db)
 
 		productUsecase := productUsecase.NewDBHTTPUsecase(productRepository)
 		transactionUsecase := transactionUsecase.NewDBHTTPUsecase(transactionRepository, productRepository, voucherRepository)
@@ -53,9 +78,14 @@ func main() {
 
 		DBGinHTTPServer(config, productHandler, transactionHandler, voucherHandler)
 	case "mysql" :
-		productRepository := productRepo.NewMySQLHTTPRepository()
-		transactionRepository := transactionRepo.NewMySQLHTTPRepository()
-		voucherRepository := voucherRepo.NewMySQLHTTPRepository()
+		db, err := client.NewConnection(client.Database).GetDBConnection()
+		if err != nil {
+			panic(err)
+		}
+
+		productRepository := productRepo.NewMySQLHTTPRepository(db)
+		transactionRepository := transactionRepo.NewMySQLHTTPRepository(db)
+		voucherRepository := voucherRepo.NewMySQLHTTPRepository(db)
 		
 		productUsecase := productUsecase.NewDBHTTPUsecase(productRepository)
 		transactionUsecase := transactionUsecase.NewDBHTTPUsecase(transactionRepository, productRepository, voucherRepository)
@@ -67,9 +97,13 @@ func main() {
 
 		DBHTTPServer(config, productHandler, transactionHandler, voucherHandler)
 	case "postgresql" :
-		productRepository := productRepo.NewPostgreSQLHTTPRepository()
-		transactionRepository := transactionRepo.NewPostgreSQLHTTPRepository()
-		voucherRepository := voucherRepo.NewPostgreSQLHTTPRepository()
+		db, err := client.NewConnection(client.Database).GetDBConnection()
+		if err != nil {
+			panic(err)
+		}
+		productRepository := productRepo.NewPostgreSQLHTTPRepository(db)
+		transactionRepository := transactionRepo.NewPostgreSQLHTTPRepository(db)
+		voucherRepository := voucherRepo.NewPostgreSQLHTTPRepository(db)
 		
 		productUsecase := productUsecase.NewDBHTTPUsecase(productRepository)
 		transactionUsecase := transactionUsecase.NewDBHTTPUsecase(transactionRepository, productRepository, voucherRepository)
@@ -105,6 +139,7 @@ func main() {
 
 func DBGinHTTPServer(config *config.Config,productHandler product.GinHandlerer, transactionHandler transaction.GinHandlerer, voucherHandler voucher.GinHandlerer) {
 	r := gin.Default()
+	r.Use(middleware.HeaderVerificationMiddleware)
 
 	r1 := r.Group("/product")
 	r1.GET("/", productHandler.GetList)

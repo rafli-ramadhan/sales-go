@@ -2,8 +2,8 @@ package transaction
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
+	"gorm.io/gorm"
 	"fmt"
 	"log"
 	"time"
@@ -14,17 +14,17 @@ import (
 	"sales-go/publisher"
 )
 
-type repositoryhttppostgresql struct {
-	db *sql.DB
+type repositoryhttpgormpostgresql struct {
+	db *gorm.DB
 }
 
-func NewPostgreSQLHTTPRepository(db *sql.DB) *repositoryhttppostgresql {
-	return &repositoryhttppostgresql{
+func NewPostgreSQLGormHTTPRepository(db *gorm.DB) *repositoryhttpgormpostgresql {
+	return &repositoryhttpgormpostgresql{
 		db: db,
 	}
 }
 
-func (repo *repositoryhttppostgresql) GetTransactionByNumber(transactionNumber int) (result []model.TransactionDetail, err error) {
+func (repo *repositoryhttpgormpostgresql) GetTransactionByNumber(transactionNumber int) (result []model.TransactionDetail, err error) {
 	defer repo.db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
@@ -70,7 +70,7 @@ func (repo *repositoryhttppostgresql) GetTransactionByNumber(transactionNumber i
 	return
 }
 
-func (repo *repositoryhttppostgresql) CreateBulkTransactionDetail(voucher model.VoucherRequest, listTransactionDetail []model.TransactionDetail, req model.TransactionDetailBulkRequest) (res []model.TransactionDetail, err error) {
+func (repo *repositoryhttpgormpostgresql) CreateBulkTransactionDetail(voucher model.VoucherRequest, listTransactionDetail []model.TransactionDetail, req model.TransactionDetailBulkRequest) (res []model.TransactionDetail, err error) {
 	sendingData := model.TransactionDataRabbitMQ{
 		voucher, 
 		listTransactionDetail, 

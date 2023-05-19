@@ -44,6 +44,12 @@ type TransactionResponseData struct {
 	Data	[]TransactionDetail	`json:"data"`
 }
 
+type TransactionDataRabbitMQ struct {
+	Voucher 				VoucherRequest
+	ListTransactionDetail 	[]TransactionDetail
+	Req 					TransactionDetailBulkRequest
+}
+
 var Total float64
 
 var TransactionSlice []Transaction = []Transaction{}

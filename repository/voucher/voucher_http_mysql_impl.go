@@ -3,26 +3,29 @@ package voucher
 import (
 	"fmt"
 	"context"
-	"sales-go/db"
+	"database/sql"
 	"sales-go/model"
 	"time"
 )
 
-type repositoryhttpmysql struct {}
+type repositoryhttpmysql struct {
+	db *sql.DB
+}
 
-func NewMySQLHTTPRepository () *repositoryhttpmysql {
-	return &repositoryhttpmysql{}
+func NewMySQLHTTPRepository(db *sql.DB) *repositoryhttpmysql {
+	return &repositoryhttpmysql{
+		db: db,
+	}
 }
 
 func (repo *repositoryhttpmysql) GetList() (listVoucher []model.Voucher, err error) {
-	db := client.NewConnection(client.Database).GetMysqlConnection()
-	defer db.Close()
+	defer repo.db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
 	query := `SELECT id, code, persen FROM voucher`
-	stmt, err := db.PrepareContext(ctx, query)
+	stmt, err := repo.db.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}
@@ -43,14 +46,13 @@ func (repo *repositoryhttpmysql) GetList() (listVoucher []model.Voucher, err err
 }
 
 func (repo *repositoryhttpmysql) GetVoucherByCode(code string) (voucherData model.Voucher, err error) {
-	db := client.NewConnection(client.Database).GetMysqlConnection()
-	defer db.Close()
+	defer repo.db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
 	query := `SELECT id, code, persen FROM voucher WHERE code = ?`
-	stmt, err := db.PrepareContext(ctx, query)
+	stmt, err := repo.db.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}
@@ -67,19 +69,18 @@ func (repo *repositoryhttpmysql) GetVoucherByCode(code string) (voucherData mode
 }
 
 func (repo *repositoryhttpmysql) Create(req []model.VoucherRequest) (response []model.Voucher, err error) {
-	db := client.NewConnection(client.Database).GetMysqlConnection()
-	defer db.Close()
+	defer repo.db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	trx, err := db.BeginTx(ctx, nil)
+	trx, err := repo.db.BeginTx(ctx, nil)
 	if err != nil {
 		return
 	}
 
 	query := `INSERT INTO voucher (code, persen) values (?, ?)`
-	stmt, err := db.PrepareContext(ctx, query)
+	stmt, err := repo.db.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}

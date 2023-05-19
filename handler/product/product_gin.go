@@ -1,11 +1,9 @@
 package product
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"sales-go/helpers/aes"
 	"sales-go/helpers/gin-rest"
 	"sales-go/model"
 	"sales-go/usecase/product"
@@ -22,16 +20,6 @@ func NewGinDBHTTPHandler(usecase product.ProductUseCase) *gindbhttphandler {
 }
 
 func (handler gindbhttphandler) GetList(ctx *gin.Context) {
-	keyStr := ctx.GetHeader("key")
-	fmt.Println(keyStr)
-
-	keyEncrypt := aes.Encrypt(key)
-	fmt.Println(keyEnc)
-
-	if keyEncrypt != "Phincon" {
-		rest.ResponseError(ctx, http.StatusBadRequest, fmt.Errorf("keyEnc is empty or not authorized"))
-	}
-
 	res, err := handler.usecase.GetList()
 	if err != nil {
 		rest.ResponseError(ctx, http.StatusInternalServerError, err)
@@ -51,8 +39,6 @@ func (handler gindbhttphandler) Create(ctx *gin.Context) {
 		rest.ResponseError(ctx, http.StatusBadRequest, err)
 		return
 	}
-
-	log.Println(req)
 
 	res, err := handler.usecase.Create(req)
 	if err != nil {

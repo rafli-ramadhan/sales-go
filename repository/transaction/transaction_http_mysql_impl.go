@@ -2,30 +2,33 @@ package transaction
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"time"
 
-	"sales-go/db"
 	"sales-go/helpers/random"
 	"sales-go/model"
 )
 
-type repositoryhttpmysql struct {}
+type repositoryhttpmysql struct {
+	db *sql.DB
+}
 
-func NewMySQLHTTPRepository() *repositoryhttpmysql {
-	return &repositoryhttpmysql{}
+func NewMySQLHTTPRepository(db *sql.DB) *repositoryhttpmysql {
+	return &repositoryhttpmysql{
+		db: db,
+	}
 }
 
 func (repo *repositoryhttpmysql) GetTransactionByNumber(transactionNumber int) (result []model.TransactionDetail, err error) {
-	db := client.NewConnection(client.Database).GetMysqlConnection()
-	defer db.Close()
+	defer repo.db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	
 	query := `SELECT id, transaction_number, name, quantity, discount, total, pay FROM transaction WHERE transaction_number = ?`
-	stmt, err := db.PrepareContext(ctx, query)
+	stmt, err := repo.db.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}
@@ -42,7 +45,7 @@ func (repo *repositoryhttpmysql) GetTransactionByNumber(transactionNumber int) (
 
 	// GetTransactionDetail
 	query2 := `SELECT id, item, price, quantity, total FROM transaction_detail WHERE transaction_id = ?`
-	stmt2, err := db.PrepareContext(ctx, query2)
+	stmt2, err := repo.db.PrepareContext(ctx, query2)
 	if err != nil {
 		return
 	}
@@ -89,21 +92,20 @@ func (repo *repositoryhttpmysql) CreateBulkTransactionDetail(voucher model.Vouch
     if err != nil {
         return
     }
-	
-	db := client.NewConnection(client.Database).GetMysqlConnection()
-	defer db.Close()
+
+	defer repo.db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	trx, err := db.BeginTx(ctx, nil)
+	trx, err := repo.db.BeginTx(ctx, nil)
 	if err != nil {
 		return
 	}
 
 	fmt.Println("PASS 1")
 	query := `INSERT INTO transaction (transaction_number, name, quantity, discount, total, pay) values (?, ?, ?, ?, ?, ?)`
-	stmt, err := db.PrepareContext(ctx, query)
+	stmt, err := repo.db.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}
@@ -120,7 +122,7 @@ func (repo *repositoryhttpmysql) CreateBulkTransactionDetail(voucher model.Vouch
 	}
 
 	query2 := `INSERT INTO transaction_detail (transaction_id, item, price, quantity, total) values (?, ?, ?, ?, ?)`
-	stmt2, err := db.PrepareContext(ctx, query2)
+	stmt2, err := repo.db.PrepareContext(ctx, query2)
 	if err != nil {
 		return
 	}

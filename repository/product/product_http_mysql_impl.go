@@ -2,26 +2,29 @@ package product
 
 import (
 	"context"
-	"sales-go/db"
+	"database/sql"
 	"sales-go/model"
 	"time"
 )
 
-type repositoryhttpmysql struct {}
+type repositoryhttpmysql struct {
+	db *sql.DB	
+}
 
-func NewMySQLHTTPRepository () *repositoryhttpmysql {
-	return &repositoryhttpmysql{}
+func NewMySQLHTTPRepository(db *sql.DB) *repositoryhttpmysql {
+	return &repositoryhttpmysql{
+		db: db,
+	}
 }
 
 func (repo *repositoryhttpmysql) GetList() (listProduct []model.Product, err error) {
-	db := client.NewConnection(client.Database).GetMysqlConnection()
-	defer db.Close()
+	defer repo.db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	query := `SELECT id, name, price FROM product`
-	stmt, err := db.PrepareContext(ctx, query)
+	stmt, err := repo.db.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}
@@ -42,14 +45,13 @@ func (repo *repositoryhttpmysql) GetList() (listProduct []model.Product, err err
 }
 
 func (repo *repositoryhttpmysql) GetProductByName(name string) (productData model.Product, err error) {
-	db := client.NewConnection(client.Database).GetMysqlConnection()
-	defer db.Close()
+	defer repo.db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	query := `SELECT id, name, price FROM product WHERE name = ?`
-	stmt, err := db.PrepareContext(ctx, query)
+	stmt, err := repo.db.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}
@@ -66,19 +68,18 @@ func (repo *repositoryhttpmysql) GetProductByName(name string) (productData mode
 }
 
 func (repo *repositoryhttpmysql) Create(req []model.ProductRequest) (result []model.Product, err error) {
-	db := client.NewConnection(client.Database).GetMysqlConnection()
-	defer db.Close()
+	defer repo.db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	trx, err := db.BeginTx(ctx, nil)
+	trx, err := repo.db.BeginTx(ctx, nil)
 	if err != nil {
 		return
 	}
 
 	query := `INSERT INTO product (name, price) VALUES (?, ?)`
-	stmt, err := db.PrepareContext(ctx, query)
+	stmt, err := repo.db.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}

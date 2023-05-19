@@ -2,22 +2,22 @@ package product
 
 import (
 	"context"
-	"database/sql"
+	"gorm.io/gorm"
 	"sales-go/model"
 	"time"
 )
 
-type repositoryhttppostgresql struct {
-	db *sql.DB
+type repositoryhttpgormpostgresql struct {
+	db *gorm.DB
 }
 
-func NewPostgreSQLHTTPRepository(db *sql.DB) *repositoryhttppostgresql {
-	return &repositoryhttppostgresql{
+func NewPostgreSQLGormHTTPRepository(db *gorm.DB) *repositoryhttpgormpostgresql {
+	return &repositoryhttpgormpostgresql{
 		db: db,
 	}
 }
 
-func (repo *repositoryhttppostgresql) GetList() (listProduct []model.Product, err error) {
+func (repo *repositoryhttpgormpostgresql) GetList() (listProduct []model.Product, err error) {
 	defer repo.db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -44,7 +44,7 @@ func (repo *repositoryhttppostgresql) GetList() (listProduct []model.Product, er
 	return
 }
 
-func (repo *repositoryhttppostgresql) GetProductByName(name string) (productData model.Product, err error) {
+func (repo *repositoryhttpgormpostgresql) GetProductByName(name string) (productData model.Product, err error) {
 	defer repo.db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -67,7 +67,7 @@ func (repo *repositoryhttppostgresql) GetProductByName(name string) (productData
 	return
 }
 
-func (repo *repositoryhttppostgresql) Create(req []model.ProductRequest) (result []model.Product, err error) {
+func (repo *repositoryhttpgormpostgresql) Create(req []model.ProductRequest) (result []model.Product, err error) {
 	defer repo.db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
