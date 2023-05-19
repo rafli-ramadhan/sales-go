@@ -42,12 +42,13 @@ func (uc *usecase) Create(req []model.ProductRequest) (response []model.Product,
 			return
 		} else if product.Price <= 0 {
 			err = fmt.Errorf("product %s : price should be > 0", product.Name)
+			return
 		} else {
 			_, err = uc.GetProductByName(product.Name)
 			if err != nil {
 				continue
 			} else {
-				fmt.Println(err)
+				fmt.Println("product already exist")
 				err = fmt.Errorf("product %s already exist", product.Name)
 				return
 			}

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/gin-gonic/gin"
 	// "github.com/swaggest/swgui/v3emb"
 
 	"sales-go/config"
@@ -36,7 +37,21 @@ func main() {
 		panic(err.Error())
 	}
 
-	switch config.Database {
+	switch config.App {
+	case "postgresql-gin":
+		productRepository := productRepo.NewPostgreSQLHTTPRepository()
+		transactionRepository := transactionRepo.NewPostgreSQLHTTPRepository()
+		voucherRepository := voucherRepo.NewPostgreSQLHTTPRepository()
+
+		productUsecase := productUsecase.NewDBHTTPUsecase(productRepository)
+		transactionUsecase := transactionUsecase.NewDBHTTPUsecase(transactionRepository, productRepository, voucherRepository)
+		voucherUsecase := voucherUsecase.NewDBHTTPUsecase(voucherRepository)
+
+		productHandler := product.NewGinDBHTTPHandler(productUsecase)
+		transactionHandler := transaction.NewGinDBHTTPHandler(transactionUsecase)
+		voucherHandler := voucher.NewGinDBHTTPHandler(voucherUsecase)
+
+		DBGinHTTPServer(config, productHandler, transactionHandler, voucherHandler)
 	case "mysql" :
 		productRepository := productRepo.NewMySQLHTTPRepository()
 		transactionRepository := transactionRepo.NewMySQLHTTPRepository()
@@ -86,6 +101,24 @@ func main() {
 
 		Menu(productHandler, transactionHandler, voucherHandler)
 	}
+}
+
+func DBGinHTTPServer(config *config.Config,productHandler product.GinHandlerer, transactionHandler transaction.GinHandlerer, voucherHandler voucher.GinHandlerer) {
+	r := gin.Default()
+
+	r1 := r.Group("/product")
+	r1.GET("/", productHandler.GetList)
+	r1.POST("/", productHandler.Create)
+
+	r2 := r.Group("/transaction")
+	r2.GET("/", transactionHandler.GetTransactionByNumber)
+	r2.POST("/", transactionHandler.CreateBulkTransactionDetail)
+
+	r3 := r.Group("/voucher")
+	r3.GET("/", voucherHandler.GetList)
+	r3.POST("/", voucherHandler.Create)
+
+	r.Run(config.Port)
 }
 
 func DBHTTPServer(config *config.Config, productHandler product.Handlerer, transactionHandler transaction.Handlerer, voucherHandler voucher.Handlerer) {

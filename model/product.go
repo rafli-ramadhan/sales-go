@@ -7,8 +7,8 @@ type Product struct {
 }
 
 type ProductRequest struct {
-	Name  string	`json:"name"`
-	Price float64	`json:"price"`
+	Name  string  `json:"name"`
+	Price float64 `json:"price"`
 }
 
 type ProductResponseData struct {

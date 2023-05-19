@@ -7,8 +7,10 @@ import (
 )
 
 type Config struct {
-	Port     string `mapStructure:"PORT"`
-	Database string `mapStructure:"DATABASE"`
+	App		 	string `mapStructure:"APP"`
+	Port     	string `mapStructure:"PORT"`
+	Database 	string `mapStructure:"DATABASE"`
+	RabbitMQURL	string `mapStructure:"RABBITMQURL"`
 }
 
 func LoadConfig() (*Config, error) {

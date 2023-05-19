@@ -40,8 +40,11 @@ func TestGetProductByName(t *testing.T) {
 	t.Run("test get product by name", func(t *testing.T) {
 		mockSuccess := product.NewProductRepoMock()
 		usecase := NewDBHTTPUsecase(mockSuccess)
-		
+
+		// request
 		productName := "Kaos Phincon"
+
+		// mock input output
 		mockSuccess.On("GetProductByName", productName).Return(model.Product{
 			Id: 1,
 			Name: "Kaos Phincon",
@@ -58,13 +61,14 @@ func TestCreate(t *testing.T) {
 		mockSuccess := product.NewProductRepoMock()
 		usecase := NewDBHTTPUsecase(mockSuccess)
 
+		// request
 		req := []model.ProductRequest{
 			{
-				Name: "Kaos_Phincon_2",
+				Name: "Kaos_Phincon",
 				Price: 30000,
 			},
 			{
-				Name: "Lanyard_Phincon_2",
+				Name: "Lanyard_Phincon",
 				Price: 80000,
 			},
 			{
@@ -72,19 +76,24 @@ func TestCreate(t *testing.T) {
 				Price: 30000,
 			},
 		}
+
+		// mock input output
+		mockSuccess.On("GetProductByName", "Kaos_Phincon").Return(model.Product{})
+		mockSuccess.On("GetProductByName", "Lanyard_Phincon").Return(model.Product{})
+		mockSuccess.On("GetProductByName", "Tumbler_Phincon").Return(model.Product{})
 		mockSuccess.On("Create", req).Return([]model.Product{
 			{
-				Id: 7,
-				Name: "Kaos_Phincon_2",
+				Id: 1,
+				Name: "Kaos_Phincon",
 				Price: 30000,
 			},
 			{
-				Id: 8,
-				Name: "Lanyard_Phincon_2",
+				Id: 2,
+				Name: "Lanyard_Phincon",
 				Price: 80000,
 			},
 			{
-				Id: 9,
+				Id: 3,
 				Name: "Tumbler_Phincon",
 				Price: 30000,
 			},

@@ -16,6 +16,7 @@ import (
 
 var (
 	_ = godotenv.Load()
+
 	conDB 				= config.NewConfig()
 	connString string 	= ""
 	Database 			= os.Getenv("DATABASE")

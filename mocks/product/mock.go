@@ -20,11 +20,11 @@ func (m *RepoMock) GetList() (listProduct []model.Product, err error) {
 }
 
 func (m *RepoMock) GetProductByName(name string) (productData model.Product, err error) {
-	productData = m.Called().Get(0).(model.Product)
+	productData = m.Called(name).Get(0).(model.Product)
 	return productData, nil
 }
 
 func (m *RepoMock) Create(req []model.ProductRequest) (result []model.Product, err error) {
-	result = m.Called().Get(0).([]model.Product)
+	result = m.Called(req).Get(0).([]model.Product)
 	return result, nil
 }

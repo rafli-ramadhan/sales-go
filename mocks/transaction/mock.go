@@ -15,11 +15,11 @@ func NewTransactionRepoMock() *RepoMock {
 }
 
 func (m *RepoMock) GetTransactionByNumber(transactionNumber int) (result []model.TransactionDetail, err error) {
-	result = m.Called().Get(0).([]model.TransactionDetail)
+	result = m.Called(transactionNumber).Get(0).([]model.TransactionDetail)
 	return result, nil
 }
 
 func (m *RepoMock) CreateBulkTransactionDetail(voucher model.VoucherRequest, listTransactionDetail []model.TransactionDetail, req model.TransactionDetailBulkRequest) (res []model.TransactionDetail, err error) {
-	res = m.Called().Get(0).([]model.TransactionDetail)
+	res = m.Called(voucher, listTransactionDetail, req).Get(0).([]model.TransactionDetail)
 	return res, nil
 }

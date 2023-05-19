@@ -13,6 +13,7 @@ func TestGetList(t *testing.T) {
 		mockSuccess := voucher.NewVoucherRepoMock()
 		usecase := NewDBHTTPUsecase(mockSuccess)
 
+		// mock input output
 		mockSuccess.On("GetList").Return([]model.Voucher{
 			{
 				Id: 1,
@@ -56,7 +57,10 @@ func TestGetVoucherByCode(t *testing.T) {
 		mockSuccess := voucher.NewVoucherRepoMock()
 		usecase := NewDBHTTPUsecase(mockSuccess)
 
+		// request
 		code := "Ph1ncon"
+
+		// mock input output
 		mockSuccess.On("GetVoucherByCode", code).Return(model.Voucher{
 			Id: 1,
 			Code: "Ph1ncon",
@@ -73,6 +77,7 @@ func TestCreate(t *testing.T) {
 		mockSuccess := voucher.NewVoucherRepoMock()
 		usecase := NewDBHTTPUsecase(mockSuccess)
 
+		// request
 		req := []model.VoucherRequest{
 			{
 				Code: "VouhcerPhincon",
@@ -84,14 +89,17 @@ func TestCreate(t *testing.T) {
 			},
 		}
 
+		// mock input output
+		mockSuccess.On("GetVoucherByCode", "VouhcerPhincon").Return(model.Voucher{})
+		mockSuccess.On("GetVoucherByCode", "Ph1nc0n").Return(model.Voucher{})
 		mockSuccess.On("Create", req).Return([]model.Voucher{
 			{
-				Id: 4,
+				Id: 1,
 				Code: "VouhcerPhincon",
 				Persen: 20,
 			},
 			{
-				Id: 5,
+				Id: 2,
 				Code: "Ph1nc0n",
 				Persen: 30,
 			},
