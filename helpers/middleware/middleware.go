@@ -2,13 +2,15 @@ package middleware
 
 import (
 	"fmt"
+	//"io"
 	"net/http"
+	//"net/httptest"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"sales-go/helpers/bcrypt"
-	"sales-go/helpers/gin-rest"
+	//"sales-go/helpers/gin-rest"
 	logger "sales-go/helpers/logging"
+
+	"github.com/gin-gonic/gin"
 )
 
 func CORSMiddleware() http.Handler {
@@ -27,14 +29,20 @@ func CORSMiddleware() http.Handler {
 }
 
 func HeaderVerificationMiddleware(ctx *gin.Context) {
-	hashKeyStr := ctx.GetHeader("key")
+	// hashKeyStr := ctx.GetHeader("key")
 
-	err := bcrypt.ComparePassword(hashKeyStr, "phincon")
-	if err != nil {
-		rest.ResponseError(ctx, http.StatusBadRequest, fmt.Errorf("keyEnc is empty or not authorized"))
-		ctx.Abort()
-		return
-	}
+	// request := httptest.NewRequest("GET", "localhost:8080/verification", nil)
+	// recorder := httptest.NewRecorder()
+
+	// response := recorder.Result()
+	// body ,_ := io.ReadAll(response.Body) 
+	// fmt.Println(string(body))
+
+	// if response.StatusCode == http.StatusUnauthorized {
+	// 	rest.ResponseError(ctx, http.StatusBadRequest, fmt.Errorf("keyEnc is empty or not authorized"))
+	// 	ctx.Abort()
+	// 	return
+	// }
 }
 
 func LoggingMiddleware(mux http.Handler) http.Handler {

@@ -52,8 +52,8 @@ func (c *Client) AfterTest() {
 
 func (c *Client) TestGetListContactSuccess() {
 	rows := sqlmock.NewRows([]string{"id", "name", "price"}).
-		AddRow("1", "Kaos Phincon", "30000").
-		AddRow("2", "Lanyard_Phincon", "30000")
+		AddRow(1, "Kaos Phincon", 30000).
+		AddRow(2, "Lanyard_Phincon", 30000)
 	c.mock.ExpectPrepare(`SELECT id, name, price FROM product`).
 		WillBeClosed().ExpectQuery().WillReturnRows(rows)
 
@@ -88,7 +88,7 @@ func (c *Client) TestGetListContactFailQuery() {
 
 func (c *Client) TestGetProductByNameSuccess() {
 	row := sqlmock.NewRows([]string{"id", "code", "persen"}).
-		AddRow("1", "Kaos_Phincon", "30000")
+		AddRow(1, "Kaos_Phincon", 30000)
 
 	c.mock.ExpectPrepare(regexp.QuoteMeta(`SELECT id, name, price FROM product WHERE name = $1`)).
 		WillBeClosed().
@@ -105,7 +105,7 @@ func (c *Client) TestGetProductByNameSuccess() {
 	require.NotEmpty(c.T(), res)
 }
 
-func (c *Client) TestGetProductByNameFailStmt() {
+func (c *Client) TestGetProductByNameFailPrepareStmt() {
 	c.mock.ExpectPrepare(regexp.QuoteMeta(`SELECT id, name, price FROM product WHERE name = $1`)).
 		WillBeClosed().
 		WillReturnError(fmt.Errorf("some error"))
