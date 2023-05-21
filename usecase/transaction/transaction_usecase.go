@@ -42,14 +42,14 @@ func (uc *usecase) GetTransactionByNumber(number int) (response []model.Transact
 
 func (uc *usecase) CreateBulkTransactionDetail(voucherCode string, req model.TransactionDetailBulkRequest) (response []model.TransactionDetail, err error) {
 	listTransactionDetail := []model.TransactionDetail{}
-	for _, transaction := range req.Items {
-		product, err := uc.productrepo.GetProductByName(transaction.Item)
-		if err != nil {
+	for _, transaction := range req.Items {		
+		if transaction.Item == "" {
+			err = fmt.Errorf("item transaction hould not be empty")
 			return []model.TransactionDetail{}, err
 		}
 
-		if transaction.Item == "" {
-			err = fmt.Errorf("item transaction hould not be empty")
+		product, err := uc.productrepo.GetProductByName(transaction.Item)
+		if err != nil {
 			return []model.TransactionDetail{}, err
 		}
 	
@@ -67,7 +67,7 @@ func (uc *usecase) CreateBulkTransactionDetail(voucherCode string, req model.Tra
 	}
 
 	var voucher model.VoucherRequest
-	if voucherCode == "" {
+	if voucherCode != "" {
 		voucherData, err := uc.voucherrepo.GetVoucherByCode(voucherCode)
 		if err != nil {
 			return []model.TransactionDetail{}, err

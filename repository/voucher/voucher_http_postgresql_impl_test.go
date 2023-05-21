@@ -104,7 +104,7 @@ func (c *Client) TestGetVoucherByCodeSuccess() {
 	require.NotEmpty(c.T(), res)
 }
 
-func (c *Client) TestGetVoucherByCodeFailStmt() {
+func (c *Client) TestGetVoucherByCodeFailPrepareStmt() {
 	c.mock.ExpectPrepare(regexp.QuoteMeta(`SELECT id, code, persen FROM voucher WHERE code = $1`)).
 		WillBeClosed().
 		WillReturnError(fmt.Errorf("some error"))

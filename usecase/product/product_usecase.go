@@ -46,6 +46,8 @@ func (uc *usecase) Create(req []model.ProductRequest) (response []model.Product,
 		} else {
 			_, err = uc.GetProductByName(product.Name)
 			if err != nil {
+				// product not found
+				err = nil
 				continue
 			} else {
 				fmt.Println("product already exist")

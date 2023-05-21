@@ -46,6 +46,8 @@ func (uc *usecase) Create(req []model.VoucherRequest) (response []model.Voucher,
 		} else {
 			_, err = uc.GetVoucherByCode(voucher.Code)
 			if err != nil {
+				// product not found
+				err = nil
 				continue
 			} else {
 				fmt.Println(err)

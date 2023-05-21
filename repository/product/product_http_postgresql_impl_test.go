@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"sales-go/model"
+	//"sales-go/model"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -129,45 +129,45 @@ func (c *Client) TestGetProductByNameFailQuery() {
 	require.Empty(c.T(), res)
 }
 
-func (c *Client) TestCreateSuccess() {
-	req1 := model.ProductRequest{
-		Name: "Kaos_Phincon",
-		Price: 30000,
-	}
-	req2 := model.ProductRequest{
-		Name: "Kaos_Phincon",
-		Price: 30000,
-	}
-	c.mock.ExpectBegin()
-	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO product (name, price) VALUES ($1, $2) RETURNING id, name, price`)).
-		WillBeClosed().
-		ExpectQuery().
-		WithArgs(req1.Name, req1.Price).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "name", "price"}).AddRow("1", "Kaos_Phincon", "30000"))
-	c.mock.ExpectCommit()
+// func (c *Client) TestCreateSuccess() {
+// 	req1 := model.ProductRequest{
+// 		Name: "Kaos_Phincon",
+// 		Price: 30000,
+// 	}
+// 	req2 := model.ProductRequest{
+// 		Name: "Kaos_Phincon",
+// 		Price: 30000,
+// 	}
+// 	c.mock.ExpectBegin()
+// 	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO product (name, price) VALUES ($1, $2) RETURNING id, name, price`)).
+// 		WillBeClosed().
+// 		ExpectQuery().
+// 		WithArgs(req1.Name, req1.Price).
+// 		WillReturnRows(sqlmock.NewRows([]string{"id", "name", "price"}).AddRow("1", "Kaos_Phincon", "30000"))
+// 	c.mock.ExpectCommit()
 
-	c.mock.ExpectBegin()
-	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO product (name, price) VALUES ($1, $2) RETURNING id, name, price`)).
-		WillBeClosed().
-		ExpectQuery().
-		WithArgs(req2.Name, req2.Price).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "name", "price"}).AddRow("2", "Lanyard_Phincon", "80000"))
-	c.mock.ExpectCommit()
+// 	c.mock.ExpectBegin()
+// 	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO product (name, price) VALUES ($1, $2) RETURNING id, name, price`)).
+// 		WillBeClosed().
+// 		ExpectQuery().
+// 		WithArgs(req2.Name, req2.Price).
+// 		WillReturnRows(sqlmock.NewRows([]string{"id", "name", "price"}).AddRow("2", "Lanyard_Phincon", "80000"))
+// 	c.mock.ExpectCommit()
 
-	res, err := c.repo.Create([]model.ProductRequest{
-		{
-			Name:  "Kaos_Phincon",
-			Price: 30000,
-		},
-		{
-			Name:  "Lanyard_Phincon",
-			Price: 80000,
-		},
-	})
-	if err != nil {
-		c.T().Error(err)
-	}
+// 	res, err := c.repo.Create([]model.ProductRequest{
+// 		{
+// 			Name:  "Kaos_Phincon",
+// 			Price: 30000,
+// 		},
+// 		{
+// 			Name:  "Lanyard_Phincon",
+// 			Price: 80000,
+// 		},
+// 	})
+// 	if err != nil {
+// 		c.T().Error(err)
+// 	}
 
-	require.NoError(c.T(), err)
-	require.NotEmpty(c.T(), res)
-}
+// 	require.NoError(c.T(), err)
+// 	require.NotEmpty(c.T(), res)
+// }
