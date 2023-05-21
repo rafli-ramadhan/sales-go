@@ -113,7 +113,7 @@
 				
 				<option value="file28">sales-go/repository/product/product_http_mysql_impl.go (0.0%)</option>
 				
-				<option value="file29">sales-go/repository/product/product_http_postgresql_impl.go (60.0%)</option>
+				<option value="file29">sales-go/repository/product/product_http_postgresql_impl.go (100.0%)</option>
 				
 				<option value="file30">sales-go/repository/transaction/transaction_cli.go (0.0%)</option>
 				
@@ -121,7 +121,7 @@
 				
 				<option value="file32">sales-go/repository/transaction/transaction_http_mysql_impl.go (0.0%)</option>
 				
-				<option value="file33">sales-go/repository/transaction/transaction_http_postgresql_impl.go (49.0%)</option>
+				<option value="file33">sales-go/repository/transaction/transaction_http_postgresql_impl.go (53.1%)</option>
 				
 				<option value="file34">sales-go/repository/voucher/voucher_cli.go (0.0%)</option>
 				
@@ -129,7 +129,7 @@
 				
 				<option value="file36">sales-go/repository/voucher/voucher_http_mysql_impl.go (0.0%)</option>
 				
-				<option value="file37">sales-go/repository/voucher/voucher_http_postgresql_impl.go (57.8%)</option>
+				<option value="file37">sales-go/repository/voucher/voucher_http_postgresql_impl.go (100.0%)</option>
 				
 				<option value="file38">sales-go/usecase/product/product_usecase.go (100.0%)</option>
 				
@@ -2215,32 +2215,32 @@ func (repo *repositoryhttppostgresql) GetProductByName(name string) (productData
         <span class="cov8" title="1">return</span>
 }
 
-func (repo *repositoryhttppostgresql) Create(req []model.ProductRequest) (result []model.Product, err error) <span class="cov0" title="0">{
+func (repo *repositoryhttppostgresql) Create(req []model.ProductRequest) (result []model.Product, err error) <span class="cov8" title="1">{
         ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
         defer cancel()
 
         trx, err := repo.db.BeginTx(ctx, nil)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return
         }</span>
 
-        <span class="cov0" title="0">query := `INSERT INTO product (name, price) VALUES ($1, $2) RETURNING id, name, price`
+        <span class="cov8" title="1">query := `INSERT INTO product (name, price) VALUES ($1, $2) RETURNING id, name, price`
         stmt, err := repo.db.PrepareContext(ctx, query)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return
         }</span>
         
-        <span class="cov0" title="0">for _, v := range req </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">for _, v := range req </span><span class="cov8" title="1">{
                 var temp model.Product
                 err = stmt.QueryRowContext(ctx, v.Name, v.Price).Scan(&amp;temp.Id, &amp;temp.Name, &amp;temp.Price)
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov8" title="1">{
                         trx.Rollback()
                         return []model.Product{}, err
                 }</span>
-                <span class="cov0" title="0">result = append(result, temp)</span>
+                <span class="cov8" title="1">result = append(result, temp)</span>
         }
 
-        <span class="cov0" title="0">trx.Commit()
+        <span class="cov8" title="1">trx.Commit()
 
         return</span>
 }
@@ -2692,12 +2692,12 @@ func (repo *repositoryhttppostgresql) GetTransactionByNumber(transactionNumber i
         // GetTransactionDetail
         <span class="cov8" title="1">query2 := `SELECT id, item, price, quantity, total FROM transaction_detail WHERE transaction_id = $1`
         stmt2, err := repo.db.PrepareContext(ctx, query2)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return
         }</span>
 
         <span class="cov8" title="1">res2, err := stmt2.QueryContext(ctx, transaction.Id)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return
         }</span>
 
@@ -3079,7 +3079,7 @@ func (repo *repositoryhttppostgresql) GetList() (listVoucher []model.Voucher, er
         }</span>
 
         <span class="cov8" title="1">res, err := stmt.QueryContext(ctx)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return
         }</span>
 
@@ -3113,32 +3113,32 @@ func (repo *repositoryhttppostgresql) GetVoucherByCode(code string) (voucherData
         <span class="cov8" title="1">return</span>
 }
 
-func (repo *repositoryhttppostgresql) Create(req []model.VoucherRequest) (response []model.Voucher, err error) <span class="cov0" title="0">{
+func (repo *repositoryhttppostgresql) Create(req []model.VoucherRequest) (response []model.Voucher, err error) <span class="cov8" title="1">{
         ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
         defer cancel()
 
         trx, err := repo.db.BeginTx(ctx, nil)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return
         }</span>
 
-        <span class="cov0" title="0">query := `INSERT INTO voucher (code, persen) VALUES ($1, $2) RETURNING id, code, persen`
+        <span class="cov8" title="1">query := `INSERT INTO voucher (code, persen) VALUES ($1, $2) RETURNING id, code, persen`
         stmt, err := repo.db.PrepareContext(ctx, query)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return
         }</span>
 
-        <span class="cov0" title="0">for _, v := range req </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">for _, v := range req </span><span class="cov8" title="1">{
                 var temp model.Voucher
                 err = stmt.QueryRowContext(ctx, v.Code, v.Persen).Scan(&amp;temp.Id, &amp;temp.Code, &amp;temp.Persen)
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov8" title="1">{
                         trx.Rollback()
                         return []model.Voucher{}, err
                 }</span>
-                <span class="cov0" title="0">response = append(response, temp)</span>
+                <span class="cov8" title="1">response = append(response, temp)</span>
         }
 
-        <span class="cov0" title="0">trx.Commit()
+        <span class="cov8" title="1">trx.Commit()
 
         return</span>
 }

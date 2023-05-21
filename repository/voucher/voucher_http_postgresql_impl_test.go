@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"sales-go/model"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -53,6 +54,7 @@ func (c *Client) TestGetListContactSuccess() {
 	rows := sqlmock.NewRows([]string{"id", "code", "persen"}).
 		AddRow("1", "Ph1ncon", "30").
 		AddRow("2", "Phintraco", "20")
+
 	c.mock.ExpectPrepare(`SELECT id, code, persen FROM voucher`).
 		WillBeClosed().ExpectQuery().WillReturnRows(rows)
 
@@ -66,8 +68,9 @@ func (c *Client) TestGetListContactSuccess() {
 }
 
 func (c *Client) TestGetListContactFailPrepareStmt() {
-	c.mock.ExpectPrepare(`SELECT id, name, price FROM voucher`).
-		WillBeClosed().WillReturnError(fmt.Errorf("some error"))
+	c.mock.ExpectPrepare(`SELECT id, code, persen FROM voucher`).
+		WillBeClosed().
+		WillReturnError(fmt.Errorf("some error"))
 
 	res, err := c.repo.GetList()
 
@@ -76,8 +79,10 @@ func (c *Client) TestGetListContactFailPrepareStmt() {
 }
 
 func (c *Client) TestGetListContactFailQuery() {
-	c.mock.ExpectPrepare(`SELECT id, name, price FROM voucher`).
-		WillBeClosed().ExpectQuery().WillReturnError(fmt.Errorf("some error"))
+	c.mock.ExpectPrepare(`SELECT id, code, persen FROM voucher`).
+		WillBeClosed().
+		ExpectQuery().
+		WillReturnError(fmt.Errorf("some error"))
 
 	res, err := c.repo.GetList()
 
@@ -123,6 +128,80 @@ func (c *Client) TestGetVoucherByCodeFailQuery() {
 		WillReturnError(fmt.Errorf("some error"))
 
 	res, err := c.repo.GetVoucherByCode("Ph1ncon")
+
+	require.Error(c.T(), err)
+	require.Empty(c.T(), res)
+}
+
+func (c *Client) TestCreateSuccess() {
+	var persen1 float64 = 30
+	c.mock.ExpectBegin()
+	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO voucher (code, persen) VALUES ($1, $2) RETURNING id, code, persen`)).
+		WillBeClosed().
+		ExpectQuery().
+		WithArgs("Ph1ncon", persen1).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "code", "persen"}).AddRow("1", "Ph1ncon", 30))
+	c.mock.ExpectCommit()
+
+	res, err := c.repo.Create([]model.VoucherRequest{
+		{
+			Code:  "Ph1ncon",
+			Persen: 30,
+		},
+	})
+
+	require.NoError(c.T(), err)
+	require.NotEmpty(c.T(), res)
+}
+
+func (c *Client) TestCreateFailedBeginTransaction() {
+	c.mock.ExpectBegin().WillReturnError(fmt.Errorf("some error"))
+
+	res, err := c.repo.Create([]model.VoucherRequest{
+		{
+			Code:  "Ph1ncon",
+			Persen: 30,
+		},
+	})
+
+	require.Error(c.T(), err)
+	require.Empty(c.T(), res)
+}
+
+func (c *Client) TestCreateFailedPrepareStmt() {
+	c.mock.ExpectBegin()
+	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO voucher (code, persen) VALUES ($1, $2) RETURNING id, code, persen`)).
+		WillBeClosed().
+		WillReturnError(fmt.Errorf("some error"))
+	c.mock.ExpectCommit()
+
+	res, err := c.repo.Create([]model.VoucherRequest{
+		{
+			Code:  "Ph1ncon",
+			Persen: 30,
+		},
+	})
+
+	require.Error(c.T(), err)
+	require.Empty(c.T(), res)
+}
+
+func (c *Client) TestCreateFailedQuery() {
+	var persen1 float64 = 30
+	c.mock.ExpectBegin()
+	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO voucher (code, persen) VALUES ($1, $2) RETURNING id, code, persen`)).
+		WillBeClosed().
+		ExpectQuery().
+		WithArgs("Ph1ncon", persen1).
+		WillReturnError(fmt.Errorf("some error"))
+	c.mock.ExpectCommit()
+
+	res, err := c.repo.Create([]model.VoucherRequest{
+		{
+			Code:  "Ph1ncon",
+			Persen: 30,
+		},
+	})
 
 	require.Error(c.T(), err)
 	require.Empty(c.T(), res)
