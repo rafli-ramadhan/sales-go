@@ -1,4 +1,4 @@
-# Go REST API with JSON / MySQL /PostgreSQL
+# Go REST API with JSON / MySQL / PostgreSQL
 
 Sales Program using JSON or Database (PT. Phincon Bootcamp Exercise)
 
@@ -16,6 +16,20 @@ go install
 ```bash
 go run main.go
 ```
+
+## List Endpoints
+
+- GET `localhost:5000/product`
+
+- POST `localhost:5000/product`
+
+- GET `localhost:5000/voucher`
+
+- POST `localhost:5000/voucher`
+
+- GET `localhost:5000/transaction`
+
+- POST `localhost:5000/transaction`
 
 ## Running Swagger UI
 
