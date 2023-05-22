@@ -67,7 +67,7 @@
 				
 				<option value="file5">sales-go/handler/product/product_http_db.go (100.0%)</option>
 				
-				<option value="file6">sales-go/handler/product/product_http_json.go (79.6%)</option>
+				<option value="file6">sales-go/handler/product/product_http_json.go (85.2%)</option>
 				
 				<option value="file7">sales-go/handler/transaction/transaction_gin.go (51.5%)</option>
 				
@@ -81,7 +81,7 @@
 				
 				<option value="file12">sales-go/handler/voucher/voucher_http_db.go (100.0%)</option>
 				
-				<option value="file13">sales-go/handler/voucher/voucher_http_json.go (69.8%)</option>
+				<option value="file13">sales-go/handler/voucher/voucher_http_json.go (84.9%)</option>
 				
 				<option value="file14">sales-go/helpers-mock/random/random.go (100.0%)</option>
 				
@@ -573,7 +573,7 @@ func (handler *jsonhttphandler) Create(w http.ResponseWriter, r *http.Request) <
                         return
                 }</span>
 
-                <span class="cov8" title="1">if v.Price &lt;= 0 </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if v.Price &lt;= 0 </span><span class="cov8" title="1">{
                         w.WriteHeader(http.StatusBadRequest)
                         w.Write([]byte("message : price must be &gt; 0"))
                         return
@@ -1125,18 +1125,18 @@ func (handler *jsonhttphandler) Create(w http.ResponseWriter, r *http.Request) <
                         return
                 }</span>
 
-                <span class="cov8" title="1">_, err = handler.repo.GetVoucherByCode(req.Code)
-                if err != nil </span><span class="cov8" title="1">{
-                        continue</span>
-                } else<span class="cov0" title="0"> if err == nil </span><span class="cov0" title="0">{
-                        w.WriteHeader(http.StatusConflict)
-                        w.Write([]byte("message : voucher already exist, pelase input another voucher code."))
+                <span class="cov8" title="1">if req.Persen &lt;= 0 </span><span class="cov8" title="1">{
+                        w.WriteHeader(http.StatusBadRequest)
+                        w.Write([]byte("message : persen must be &gt; 0"))
                         return
                 }</span>
 
-                <span class="cov0" title="0">if req.Persen &lt;= 0 </span><span class="cov0" title="0">{
-                        w.WriteHeader(http.StatusBadRequest)
-                        w.Write([]byte("message : persen must be &gt; 0"))
+                <span class="cov8" title="1">_, err = handler.repo.GetVoucherByCode(req.Code)
+                if err != nil </span><span class="cov8" title="1">{
+                        continue</span>
+                } else<span class="cov8" title="1"> if err == nil </span><span class="cov8" title="1">{
+                        w.WriteHeader(http.StatusConflict)
+                        w.Write([]byte("message : voucher already exist, pelase input another voucher code."))
                         return
                 }</span>
         }

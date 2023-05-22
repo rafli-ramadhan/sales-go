@@ -213,4 +213,46 @@ func TestHandlerHTTPJson(t *testing.T) {
 
 		require.Equal(t, http.StatusInternalServerError, response.StatusCode)
 	})
+
+	t.Run("test handler create multiple voucher failed : voucher exist", func(t *testing.T) {
+		ucMock := voucher.NewVoucherUsecaseMock()
+		handler := NewJsonHTTPHandler(ucMock)
+
+		req := []model.VoucherRequest{
+			{
+				Code: "Ph1ncon",
+				Persen: 30,
+			},
+			{
+				Code: "Phintraco",
+				Persen: 20,
+			},
+		}
+
+		ucMock.On("GetVoucherByCode", "Ph1ncon").Return(model.Voucher{
+			Id: 1,
+			Code: "Ph1ncon",
+			Persen: 30,
+		} , nil)
+			
+		ucMock.On("GetVoucherByCode", "Phintraco").Return(model.Voucher{
+			Id: 2,
+			Code: "Phintraco",
+			Persen: 20,
+		}, nil)
+
+		jsonByte, err := json.Marshal(req)
+		if err != nil {
+			t.Error(err)
+		}
+		body := bytes.NewReader(jsonByte)
+
+		request := httptest.NewRequest(http.MethodPost, "http://localhost:5000/voucher", body)
+		recorder := httptest.NewRecorder()
+
+		handler.Create(recorder, request)
+		response := recorder.Result()
+
+		require.Equal(t, http.StatusConflict, response.StatusCode)
+	})
 }
