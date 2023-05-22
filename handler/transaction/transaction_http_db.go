@@ -2,6 +2,7 @@ package transaction
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"sales-go/helpers/rest"
@@ -26,9 +27,10 @@ func (handler *dbhttphandler) GetTransactionByNumber(w http.ResponseWriter, r *h
 	transactionNumberStr := r.URL.Query().Get("transaction_id")
 	transactionNumber, err := strconv.Atoi(transactionNumberStr)
 	if err != nil {
-		rest.ResponseError(w, r, http.StatusInternalServerError, err)
+		rest.ResponseError(w, r, http.StatusBadRequest, err)
 		return
 	}
+	
 
 	response, err := handler.usecase.GetTransactionByNumber(transactionNumber)
 	if err != nil {
@@ -40,6 +42,7 @@ func (handler *dbhttphandler) GetTransactionByNumber(w http.ResponseWriter, r *h
 			return
 		}
 	}
+	fmt.Println("HEREhere")
 	rest.ResponseData(w, r, http.StatusOK, response)
 }
 
@@ -47,7 +50,7 @@ func (handler *dbhttphandler) CreateBulkTransactionDetail(w http.ResponseWriter,
 	req := model.TransactionDetailBulkRequest{}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		rest.ResponseError(w, r, http.StatusInternalServerError, err)
+		rest.ResponseError(w, r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -63,5 +66,6 @@ func (handler *dbhttphandler) CreateBulkTransactionDetail(w http.ResponseWriter,
 			return
 		}
 	}
+	fmt.Println("HEREhere")
 	rest.ResponseData(w, r, http.StatusCreated, res)
 }

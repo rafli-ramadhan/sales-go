@@ -13,44 +13,44 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type ClientPostgresql struct {
+type ClientMysql struct {
 	suite.Suite
 	db *sql.DB
 	mock sqlmock.Sqlmock
 	repo Repositorier
 }
 
-func TestRepoPostgresql(t *testing.T) {
-	suite.Run(t, new(ClientPostgresql))
+func TestRepoMysql(t *testing.T) {
+	suite.Run(t, new(ClientMysql))
 }
 
-func (c *ClientPostgresql) SetupTest() {
+func (c *ClientMysql) SetupTest() {
 	var err error
 	c.db, c.mock, err = sqlmock.New()
 	if err != nil {
 		panic(fmt.Sprintf("Error database connection %s", err))
 	}
 
-	c.repo = NewPostgreSQLHTTPRepository(c.db)
+	c.repo = NewMySQLHTTPRepository(c.db)
 }
 
-func (c *ClientPostgresql) SetupSuite() {
+func (c *ClientMysql) SetupSuite() {
 	log.Println("set up test     : before all test executed")
 }
 
-func (c *ClientPostgresql) TearDownTest() {
+func (c *ClientMysql) TearDownTest() {
 	log.Println("tear down test  : after each test executed")
 }
 
-func (c *ClientPostgresql) TearDownSetup() {
+func (c *ClientMysql) TearDownSetup() {
 	log.Println("tear down setup : after all test executed")
 }
 
-func (c *ClientPostgresql) AfterTest() {
+func (c *ClientMysql) AfterTest() {
 	log.Println("after test 	 : after all test executed")
 }
 
-func (c *ClientPostgresql) TestGetListContactSuccess() {
+func (c *ClientMysql) TestGetListContactSuccess() {
 	rows := sqlmock.NewRows([]string{"id", "code", "persen"}).
 		AddRow("1", "Ph1ncon", "30").
 		AddRow("2", "Phintraco", "20")
@@ -67,7 +67,7 @@ func (c *ClientPostgresql) TestGetListContactSuccess() {
 	require.NotEmpty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestGetListContactFailPrepareStmt() {
+func (c *ClientMysql) TestGetListContactFailPrepareStmt() {
 	c.mock.ExpectPrepare(`SELECT id, code, persen FROM voucher`).
 		WillBeClosed().
 		WillReturnError(fmt.Errorf("some error"))
@@ -78,7 +78,7 @@ func (c *ClientPostgresql) TestGetListContactFailPrepareStmt() {
 	require.Empty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestGetListContactFailQuery() {
+func (c *ClientMysql) TestGetListContactFailQuery() {
 	c.mock.ExpectPrepare(`SELECT id, code, persen FROM voucher`).
 		WillBeClosed().
 		ExpectQuery().
@@ -90,11 +90,11 @@ func (c *ClientPostgresql) TestGetListContactFailQuery() {
 	require.Empty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestGetVoucherByCodeSuccess() {
+func (c *ClientMysql) TestGetVoucherByCodeSuccess() {
 	row := sqlmock.NewRows([]string{"id", "code", "persen"}).
 		AddRow("1", "Ph1ncon", "30")
 
-	c.mock.ExpectPrepare(regexp.QuoteMeta(`SELECT id, code, persen FROM voucher WHERE code = $1`)).
+	c.mock.ExpectPrepare(regexp.QuoteMeta(`SELECT id, code, persen FROM voucher WHERE code = ?`)).
 		WillBeClosed().
 		ExpectQuery().
 		WithArgs("Ph1ncon").
@@ -109,8 +109,8 @@ func (c *ClientPostgresql) TestGetVoucherByCodeSuccess() {
 	require.NotEmpty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestGetVoucherByCodeFailPrepareStmt() {
-	c.mock.ExpectPrepare(regexp.QuoteMeta(`SELECT id, code, persen FROM voucher WHERE code = $1`)).
+func (c *ClientMysql) TestGetVoucherByCodeFailPrepareStmt() {
+	c.mock.ExpectPrepare(regexp.QuoteMeta(`SELECT id, code, persen FROM voucher WHERE code = ?`)).
 		WillBeClosed().
 		WillReturnError(fmt.Errorf("some error"))
 
@@ -120,8 +120,8 @@ func (c *ClientPostgresql) TestGetVoucherByCodeFailPrepareStmt() {
 	require.Empty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestGetVoucherByCodeFailQuery() {
-	c.mock.ExpectPrepare(regexp.QuoteMeta(`SELECT id, code, persen FROM voucher WHERE code = $1`)).
+func (c *ClientMysql) TestGetVoucherByCodeFailQuery() {
+	c.mock.ExpectPrepare(regexp.QuoteMeta(`SELECT id, code, persen FROM voucher WHERE code = ?`)).
 		WillBeClosed().
 		ExpectQuery().
 		WithArgs("Ph1ncon").
@@ -133,14 +133,14 @@ func (c *ClientPostgresql) TestGetVoucherByCodeFailQuery() {
 	require.Empty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestCreateSuccess() {
+func (c *ClientMysql) TestCreateSuccess() {
 	var persen1 float64 = 30
 	c.mock.ExpectBegin()
-	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO voucher (code, persen) VALUES ($1, $2) RETURNING id, code, persen`)).
+	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO voucher (code, persen) values (?, ?)`)).
 		WillBeClosed().
-		ExpectQuery().
+		ExpectExec().
 		WithArgs("Ph1ncon", persen1).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "code", "persen"}).AddRow("1", "Ph1ncon", 30))
+		WillReturnResult(sqlmock.NewResult(1, 1))
 	c.mock.ExpectCommit()
 
 	res, err := c.repo.Create([]model.VoucherRequest{
@@ -154,7 +154,7 @@ func (c *ClientPostgresql) TestCreateSuccess() {
 	require.NotEmpty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestCreateFailedBeginTransaction() {
+func (c *ClientMysql) TestCreateFailedBeginTransaction() {
 	c.mock.ExpectBegin().WillReturnError(fmt.Errorf("some error"))
 
 	res, err := c.repo.Create([]model.VoucherRequest{
@@ -168,9 +168,9 @@ func (c *ClientPostgresql) TestCreateFailedBeginTransaction() {
 	require.Empty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestCreateFailedPrepareStmt() {
+func (c *ClientMysql) TestCreateFailedPrepareStmt() {
 	c.mock.ExpectBegin()
-	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO voucher (code, persen) VALUES ($1, $2) RETURNING id, code, persen`)).
+	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO voucher (code, persen) values (?, ?)`)).
 		WillBeClosed().
 		WillReturnError(fmt.Errorf("some error"))
 	c.mock.ExpectCommit()
@@ -186,14 +186,35 @@ func (c *ClientPostgresql) TestCreateFailedPrepareStmt() {
 	require.Empty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestCreateFailedQuery() {
+func (c *ClientMysql) TestCreateFailedQuery() {
 	var persen1 float64 = 30
 	c.mock.ExpectBegin()
-	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO voucher (code, persen) VALUES ($1, $2) RETURNING id, code, persen`)).
+	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO voucher (code, persen) values (?, ?)`)).
 		WillBeClosed().
 		ExpectQuery().
 		WithArgs("Ph1ncon", persen1).
 		WillReturnError(fmt.Errorf("some error"))
+	c.mock.ExpectCommit()
+
+	res, err := c.repo.Create([]model.VoucherRequest{
+		{
+			Code:  "Ph1ncon",
+			Persen: 30,
+		},
+	})
+
+	require.Error(c.T(), err)
+	require.Empty(c.T(), res)
+}
+
+func (c *ClientMysql) TestCreateFailedLastIDIsMinus() {
+	var persen1 float64 = 30
+	c.mock.ExpectBegin()
+	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO voucher (code, persen) values (?, ?)`)).
+		WillBeClosed().
+		ExpectExec().
+		WithArgs("Ph1ncon", persen1).
+		WillReturnResult(sqlmock.NewResult(-1, 1))
 	c.mock.ExpectCommit()
 
 	res, err := c.repo.Create([]model.VoucherRequest{

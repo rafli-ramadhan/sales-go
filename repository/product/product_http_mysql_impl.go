@@ -3,6 +3,7 @@ package product
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"sales-go/model"
 	"time"
 )
@@ -91,9 +92,9 @@ func (repo *repositoryhttpmysql) Create(req []model.ProductRequest) (result []mo
 			return []model.Product{}, err
 		}
 
-		lastID, err := res.LastInsertId()
-		if err != nil {
-			return []model.Product{}, err
+		lastID, _ := res.LastInsertId()
+		if lastID == 0 || lastID < 0 {
+			return []model.Product{}, fmt.Errorf("last id is 0 or negative value")
 		}
 
 		result = append(result, model.Product{

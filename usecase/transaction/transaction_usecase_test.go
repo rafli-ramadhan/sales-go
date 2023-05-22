@@ -6,9 +6,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"sales-go/model"
-	productMock "sales-go/mocks/product"
-	transactionMock "sales-go/mocks/transaction"
-	voucherMock "sales-go/mocks/voucher"
+	productMock "sales-go/repository-mocks/product"
+	transactionMock "sales-go/repository-mocks/transaction"
+	voucherMock "sales-go/repository-mocks/voucher"
 )
 
 func TestUseCaseTransaction(t *testing.T) {

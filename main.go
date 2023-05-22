@@ -96,10 +96,11 @@ func main() {
 			panic(err)
 		}
 
+		publisher := publisher.NewPublisher()
 		random := random.NewRandom()
 
 		productRepository := productRepo.NewMySQLHTTPRepository(db)
-		transactionRepository := transactionRepo.NewMySQLHTTPRepository(db, random)
+		transactionRepository := transactionRepo.NewMySQLHTTPRepository(db, publisher, random)
 		voucherRepository := voucherRepo.NewMySQLHTTPRepository(db)
 		
 		productUsecase := productUsecase.NewDBHTTPUsecase(productRepository)

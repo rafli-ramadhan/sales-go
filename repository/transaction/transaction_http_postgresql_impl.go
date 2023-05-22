@@ -76,7 +76,6 @@ func (repo *repositoryhttppostgresql) CreateBulkTransactionDetail(voucher model.
 	if err != nil {
 		return
 	}
-	fmt.Println("RANDOM : ", randomInteger)
 
 	// sum all quantity and total
 	var quantity int

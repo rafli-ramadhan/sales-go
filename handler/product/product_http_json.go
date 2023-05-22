@@ -50,6 +50,12 @@ func (handler *jsonhttphandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, v := range req {
+		if v.Name == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("message : name must not be empty"))
+			return
+		}
+
 		if v.Price <= 0 {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("message : price must be > 0"))

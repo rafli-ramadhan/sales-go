@@ -92,9 +92,9 @@ func (repo *repositoryhttpmysql) Create(req []model.VoucherRequest) (response []
 			return []model.Voucher{}, err
 		}
 
-		lastID, err := res.LastInsertId()
-		if err != nil {
-			return []model.Voucher{}, err
+		lastID, _ := res.LastInsertId()
+		if lastID == 0 || lastID < 0 {
+			return []model.Voucher{}, fmt.Errorf("last id is 0 or negative value")
 		}
 
 		response = append(response, model.Voucher{

@@ -36,8 +36,13 @@ func (handler gindbhttphandler) GetTransactionByNumber(ctx *gin.Context) {
 
 	res, err := handler.usecase.GetTransactionByNumber(transactionNumber)
 	if err != nil {
-		rest.ResponseError(ctx, http.StatusInternalServerError, err)
-		return
+		if err.Error() == "id must be > 0" {
+			rest.ResponseError(ctx, http.StatusBadRequest, err)
+			return
+		} else {
+			rest.ResponseError(ctx, http.StatusInternalServerError, err)
+			return
+		}
 	}
 	rest.ResponseData(ctx, http.StatusOK, res)
 }

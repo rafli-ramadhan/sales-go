@@ -22,6 +22,7 @@ func NewJsonHTTPHandler(repositorier voucher.Repositorier) *jsonhttphandler {
 func (handler *jsonhttphandler) GetList(w http.ResponseWriter, r *http.Request) {
 	result, err := handler.repo.GetList()
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(fmt.Sprintf("message : %s", err.Error())))
 		log.Println("[ERROR] get list voucher :", err.Error())
 		return
@@ -49,18 +50,24 @@ func (handler *jsonhttphandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, req := range req {
-		_, err = handler.repo.GetVoucherByCode(req.Code)
-		if err != nil {
-			continue
-		} else if err == nil {
-			w.WriteHeader(http.StatusConflict)
-			w.Write([]byte("message : voucher already exist, pelase input another voucher code."))
+		if req.Code == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("message : code should not be empty"))
 			return
 		}
 
 		if req.Persen <= 0 {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("message : persen must be > 0"))
+			return
+		}
+
+		_, err = handler.repo.GetVoucherByCode(req.Code)
+		if err != nil {
+			continue
+		} else if err == nil {
+			w.WriteHeader(http.StatusConflict)
+			w.Write([]byte("message : voucher already exist, pelase input another voucher code."))
 			return
 		}
 	}

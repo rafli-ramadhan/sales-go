@@ -14,10 +14,10 @@ import (
 	"sales-go/usecase-mocks/voucher"
 )
 
-func TestHandlerHTTPDB(t *testing.T) {
+func TestHandlerHTTPJson(t *testing.T) {
 	t.Run("test handler get list voucher success", func(t *testing.T) {
 		ucMock := voucher.NewVoucherUsecaseMock()
-		handler := NewDBHTTPHandler(ucMock)
+		handler := NewJsonHTTPHandler(ucMock)
 
 		ucMock.On("GetList").Return([]model.Voucher{
 			{
@@ -43,7 +43,7 @@ func TestHandlerHTTPDB(t *testing.T) {
 	
 	t.Run("test handler get list voucher failed", func(t *testing.T) {
 		ucMock := voucher.NewVoucherUsecaseMock()
-		handler := NewDBHTTPHandler(ucMock)
+		handler := NewJsonHTTPHandler(ucMock)
 
 		ucMock.On("GetList").Return([]model.Voucher{}, fmt.Errorf("some error"))
 
@@ -58,7 +58,7 @@ func TestHandlerHTTPDB(t *testing.T) {
 
 	t.Run("test handler create multiple voucher success", func(t *testing.T) {
 		ucMock := voucher.NewVoucherUsecaseMock()
-		handler := NewDBHTTPHandler(ucMock)
+		handler := NewJsonHTTPHandler(ucMock)
 
 		req := []model.VoucherRequest{
 			{
@@ -70,6 +70,11 @@ func TestHandlerHTTPDB(t *testing.T) {
 				Persen: 20,
 			},
 		}
+
+		ucMock.On("GetVoucherByCode", "Ph1ncon").Return(model.Voucher{}, fmt.Errorf("voucher not found"))
+			
+		ucMock.On("GetVoucherByCode", "Phintraco").Return(model.Voucher{}, fmt.Errorf("voucher not found"))
+
 		ucMock.On("Create", req).Return([]model.Voucher{
 			{
 				Id: 1,
@@ -95,12 +100,12 @@ func TestHandlerHTTPDB(t *testing.T) {
 		handler.Create(recorder, request)
 		response := recorder.Result()
 
-		require.Equal(t, http.StatusOK, response.StatusCode)
+		require.Equal(t, http.StatusCreated, response.StatusCode)
 	})
 
 	t.Run("test handler create multiple voucher failed : json decoder", func(t *testing.T) {
 		ucMock := voucher.NewVoucherUsecaseMock()
-		handler := NewDBHTTPHandler(ucMock)
+		handler := NewJsonHTTPHandler(ucMock)
 
 		body := bytes.NewReader([]byte{0, 0, 0, 0, 0, 0, 0})
 
@@ -110,12 +115,12 @@ func TestHandlerHTTPDB(t *testing.T) {
 		handler.Create(recorder, request)
 		response := recorder.Result()
 
-		require.Equal(t, http.StatusBadRequest, response.StatusCode)
+		require.Equal(t, http.StatusInternalServerError, response.StatusCode)
 	})
 
 	t.Run("test handler create multiple voucher failed with some empty code", func(t *testing.T) {
 		ucMock := voucher.NewVoucherUsecaseMock()
-		handler := NewDBHTTPHandler(ucMock)
+		handler := NewJsonHTTPHandler(ucMock)
 
 		req := []model.VoucherRequest{
 			{
@@ -127,7 +132,6 @@ func TestHandlerHTTPDB(t *testing.T) {
 				Persen: 20,
 			},
 		}
-		ucMock.On("Create", req).Return([]model.Voucher{}, fmt.Errorf("code should not be empty"))
 
 		jsonByte, err := json.Marshal(req)
 		if err != nil {
@@ -144,9 +148,39 @@ func TestHandlerHTTPDB(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, response.StatusCode)
 	})
 
-	t.Run("test handler create multiple voucher failed", func(t *testing.T) {
+	t.Run("test handler create multiple voucher failed with some negative persen ", func(t *testing.T) {
 		ucMock := voucher.NewVoucherUsecaseMock()
-		handler := NewDBHTTPHandler(ucMock)
+		handler := NewJsonHTTPHandler(ucMock)
+
+		req := []model.VoucherRequest{
+			{
+				Code: "Phincon",
+				Persen: -1,
+			},
+			{
+				Code: "Phintraco",
+				Persen: 20,
+			},
+		}
+
+		jsonByte, err := json.Marshal(req)
+		if err != nil {
+			t.Error(err)
+		}
+		body := bytes.NewReader(jsonByte)
+
+		request := httptest.NewRequest(http.MethodPost, "http://localhost:5000/voucher", body)
+		recorder := httptest.NewRecorder()
+
+		handler.Create(recorder, request)
+		response := recorder.Result()
+
+		require.Equal(t, http.StatusBadRequest, response.StatusCode)
+	})
+
+	t.Run("test handler create multiple voucher failed : create error", func(t *testing.T) {
+		ucMock := voucher.NewVoucherUsecaseMock()
+		handler := NewJsonHTTPHandler(ucMock)
 
 		req := []model.VoucherRequest{
 			{
@@ -158,6 +192,11 @@ func TestHandlerHTTPDB(t *testing.T) {
 				Persen: 20,
 			},
 		}
+
+		ucMock.On("GetVoucherByCode", "Ph1ncon").Return(model.Voucher{}, fmt.Errorf("voucher not found"))
+			
+		ucMock.On("GetVoucherByCode", "Phintraco").Return(model.Voucher{}, fmt.Errorf("voucher not found"))
+
 		ucMock.On("Create", req).Return([]model.Voucher{}, fmt.Errorf("some error"))
 
 		jsonByte, err := json.Marshal(req)

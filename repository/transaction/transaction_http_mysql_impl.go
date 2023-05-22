@@ -3,23 +3,26 @@ package transaction
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
+	"errors"
 	"time"
 
 	"sales-go/helpers/random"
 	"sales-go/model"
+	"sales-go/publisher"
 )
 
 type repositoryhttpmysql struct {
-	db 		*sql.DB
-	random	random.RandomInterface
+	db 			*sql.DB
+	publisher	publisher.PublisherInterface
+	random		random.RandomInterface
 }
 
-func NewMySQLHTTPRepository(db *sql.DB, random random.RandomInterface) *repositoryhttpmysql {
+func NewMySQLHTTPRepository(db *sql.DB, publisher publisher.PublisherInterface, random random.RandomInterface) *repositoryhttpmysql {
 	return &repositoryhttpmysql{
-		db: 	db,
-		random: random,
+		db: 		db,
+		publisher:	publisher,
+		random: 	random,
 	}
 }
 
@@ -69,6 +72,12 @@ func (repo *repositoryhttpmysql) GetTransactionByNumber(transactionNumber int) (
 }
 
 func (repo *repositoryhttpmysql) CreateBulkTransactionDetail(voucher model.VoucherRequest, listTransactionDetail []model.TransactionDetail, req model.TransactionDetailBulkRequest) (res []model.TransactionDetail, err error) {
+	// generate random integer
+	randomInteger, err := repo.random.RandomString(9)
+	if err != nil {
+		return
+	}
+
 	// sum all quantity and total
 	var quantity int
 	var total float64
@@ -88,79 +97,40 @@ func (repo *repositoryhttpmysql) CreateBulkTransactionDetail(voucher model.Vouch
 		err = errors.New("pay must be > total")
 		return
 	}
+	
+	data := model.TransactionRabbitMQData{
+		Name:					req.Name,
+		RandomInteger:			randomInteger,
+		Quantity:				quantity,
+		Total:					total,
+		Discount:				discount,
+		Pay:					req.Pay,
+		ListTransactionDetail:	listTransactionDetail,
+	}
 
-	// generate random integer
-	randomInteger, err := repo.random.RandomString(9)
-    if err != nil {
-        return
-    }
-
-	defer repo.db.Close()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-
-	trx, err := repo.db.BeginTx(ctx, nil)
+	// publish data to RabbitMQ
+	err = repo.publisher.Publish(data)
 	if err != nil {
+		err = fmt.Errorf("error publish data to RabbitMQ : %s", err.Error())
 		return
 	}
 
-	fmt.Println("PASS 1")
-	query := `INSERT INTO transaction (transaction_number, name, quantity, discount, total, pay) values (?, ?, ?, ?, ?, ?)`
-	stmt, err := repo.db.PrepareContext(ctx, query)
-	if err != nil {
-		return
-	}
-
-	resInsert, err := stmt.ExecContext(ctx, randomInteger, req.Name, quantity, discount, total, req.Pay)
-	if err != nil {
-		trx.Rollback()
-		return
-	}
-
-	lastIDTransaction, err := resInsert.LastInsertId()
-	if err != nil {
-		return
-	}
-
-	query2 := `INSERT INTO transaction_detail (transaction_id, item, price, quantity, total) values (?, ?, ?, ?, ?)`
-	stmt2, err := repo.db.PrepareContext(ctx, query2)
-	if err != nil {
-		return
-	}
-
-	for _, v := range listTransactionDetail {
-		res2, err := stmt2.ExecContext(ctx, lastIDTransaction, v.Item, v.Price, v.Quantity, v.Total)
-		if err != nil {
-			trx.Rollback()
-			return []model.TransactionDetail{}, err
-		}
-
-		lastID, err := res2.LastInsertId()
-		if err != nil {
-			return []model.TransactionDetail{}, err
-		}
-
-		newTransaction := model.TransactionDetail{
-			Id:       int(lastID),
+	for _, v := range data.ListTransactionDetail {
+		res = append(res,  model.TransactionDetail{
 			Item:	  v.Item,
 			Price:	  v.Price,
 			Quantity: v.Quantity,
 			Total:	  v.Total,
 			Transaction: model.Transaction{
-				Id: 	  		   int(lastIDTransaction),
-				TransactionNumber: randomInteger,
-				Name:	  		   req.Name,
-				Quantity: 		   quantity,
-				Discount: 		   discount,
-				Total:	  		   total,
-				Pay:	  		   req.Pay,
+				TransactionNumber: data.RandomInteger,
+				Name:	  		   data.Name,
+				Quantity: 		   data.Quantity,
+				Discount: 		   data.Discount,
+				Total:	  		   data.Total,
+				Pay:	  		   data.Pay,
 			},
-		}
-		res = append(res, newTransaction)
+		})
 	}
-
-	trx.Commit()
 
 	return
 }

@@ -32,7 +32,7 @@ func (handler *dbhttphandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		rest.ResponseError(w, r, http.StatusInternalServerError, err)
+		rest.ResponseError(w, r, http.StatusBadRequest, err)
 		return
 	}
 

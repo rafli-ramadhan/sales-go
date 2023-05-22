@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"sales-go/mocks/voucher"
+	"sales-go/repository-mocks/voucher"
 	"sales-go/model"
 )
 

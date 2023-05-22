@@ -5,7 +5,7 @@ import (
 	"testing"
 	"github.com/stretchr/testify/require"
 
-	"sales-go/mocks/product"
+	"sales-go/repository-mocks/product"
 	"sales-go/model"
 )
 

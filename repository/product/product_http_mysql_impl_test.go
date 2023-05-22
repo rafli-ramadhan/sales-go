@@ -13,44 +13,44 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type ClientPostgresql struct {
+type ClientMysql struct {
 	suite.Suite
 	db *sql.DB
 	mock sqlmock.Sqlmock
 	repo Repositorier
 }
 
-func TestRepoPostgresql(t *testing.T) {
-	suite.Run(t, new(ClientPostgresql))
+func TestRepoMysql(t *testing.T) {
+	suite.Run(t, new(ClientMysql))
 }
 
-func (c *ClientPostgresql) SetupTest() {
+func (c *ClientMysql) SetupTest() {
 	var err error
 	c.db, c.mock, err = sqlmock.New()
 	if err != nil {
 		panic(fmt.Sprintf("Error database connection %s", err))
 	}
 
-	c.repo = NewPostgreSQLHTTPRepository(c.db)
+	c.repo = NewMySQLHTTPRepository(c.db)
 }
 
-func (c *ClientPostgresql) SetupSuite() {
+func (c *ClientMysql) SetupSuite() {
 	log.Println("set up test     : before all test executed")
 }
 
-func (c *ClientPostgresql) TearDownTest() {
+func (c *ClientMysql) TearDownTest() {
 	log.Println("tear down test  : after each test executed")
 }
 
-func (c *ClientPostgresql) TearDownSetup() {
+func (c *ClientMysql) TearDownSetup() {
 	log.Println("tear down setup : after all test executed")
 }
 
-func (c *ClientPostgresql) AfterTest() {
+func (c *ClientMysql) AfterTest() {
 	log.Println("after test 	 : after all test executed")
 }
 
-func (c *ClientPostgresql) TestGetListContactSuccess() {
+func (c *ClientMysql) TestGetListContactSuccess() {
 	rows := sqlmock.NewRows([]string{"id", "name", "price"}).
 		AddRow(1, "Kaos Phincon", 30000).
 		AddRow(2, "Lanyard_Phincon", 30000)
@@ -67,7 +67,7 @@ func (c *ClientPostgresql) TestGetListContactSuccess() {
 	require.NotEmpty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestGetListContactFailPrepareStmt() {
+func (c *ClientMysql) TestGetListContactFailPrepareStmt() {
 	c.mock.ExpectPrepare(`SELECT id, name, price FROM product`).
 		WillBeClosed().
 		WillReturnError(fmt.Errorf("some error"))
@@ -78,7 +78,7 @@ func (c *ClientPostgresql) TestGetListContactFailPrepareStmt() {
 	require.Empty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestGetListContactFailQuery() {
+func (c *ClientMysql) TestGetListContactFailQuery() {
 	c.mock.ExpectPrepare(`SELECT id, name, price FROM product`).
 		WillBeClosed().
 		ExpectQuery().
@@ -90,11 +90,11 @@ func (c *ClientPostgresql) TestGetListContactFailQuery() {
 	require.Empty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestGetProductByNameSuccess() {
+func (c *ClientMysql) TestGetProductByNameSuccess() {
 	row := sqlmock.NewRows([]string{"id", "code", "persen"}).
 		AddRow(1, "Kaos_Phincon", 30000)
 
-	c.mock.ExpectPrepare(regexp.QuoteMeta(`SELECT id, name, price FROM product WHERE name = $1`)).
+	c.mock.ExpectPrepare(regexp.QuoteMeta(`SELECT id, name, price FROM product WHERE name = ?`)).
 		WillBeClosed().
 		ExpectQuery().
 		WithArgs("Kaos_Phincon").
@@ -109,8 +109,8 @@ func (c *ClientPostgresql) TestGetProductByNameSuccess() {
 	require.NotEmpty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestGetProductByNameFailPrepareStmt() {
-	c.mock.ExpectPrepare(regexp.QuoteMeta(`SELECT id, name, price FROM product WHERE name = $1`)).
+func (c *ClientMysql) TestGetProductByNameFailPrepareStmt() {
+	c.mock.ExpectPrepare(regexp.QuoteMeta(`SELECT id, name, price FROM product WHERE name = ?`)).
 		WillBeClosed().
 		WillReturnError(fmt.Errorf("some error"))
 
@@ -120,8 +120,8 @@ func (c *ClientPostgresql) TestGetProductByNameFailPrepareStmt() {
 	require.Empty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestGetProductByNameFailQuery() {
-	c.mock.ExpectPrepare(regexp.QuoteMeta(`SELECT id, name, price FROM product WHERE name = $1`)).
+func (c *ClientMysql) TestGetProductByNameFailQuery() {
+	c.mock.ExpectPrepare(regexp.QuoteMeta(`SELECT id, name, price FROM product WHERE name = ?`)).
 		WillBeClosed().
 		ExpectQuery().
 		WithArgs("Kaos_Phincon").
@@ -133,14 +133,14 @@ func (c *ClientPostgresql) TestGetProductByNameFailQuery() {
 	require.Empty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestCreateSuccess() {
+func (c *ClientMysql) TestCreateSuccess() {
 	var price1 float64 = 30000
 	c.mock.ExpectBegin()
-	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO product (name, price) VALUES ($1, $2) RETURNING id, name, price`)).
+	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO product (name, price) VALUES (?, ?)`)).
 		WillBeClosed().
-		ExpectQuery().
+		ExpectExec().
 		WithArgs("Kaos_Phincon", price1).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "name", "price"}).AddRow("1", "Kaos_Phincon", 30000))
+		WillReturnResult(sqlmock.NewResult(1, 1))
 	c.mock.ExpectCommit()
 
 	res, err := c.repo.Create([]model.ProductRequest{
@@ -154,7 +154,7 @@ func (c *ClientPostgresql) TestCreateSuccess() {
 	require.NotEmpty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestCreateFailedBeginTransaction() {
+func (c *ClientMysql) TestCreateFailedBeginTransaction() {
 	c.mock.ExpectBegin().WillReturnError(fmt.Errorf("some error"))
 
 	res, err := c.repo.Create([]model.ProductRequest{
@@ -168,9 +168,9 @@ func (c *ClientPostgresql) TestCreateFailedBeginTransaction() {
 	require.Empty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestCreateFailedPrepareStmt() {
+func (c *ClientMysql) TestCreateFailedPrepareStmt() {
 	c.mock.ExpectBegin()
-	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO product (name, price) VALUES ($1, $2) RETURNING id, name, price`)).
+	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO product (name, price) VALUES (?, ?)`)).
 		WillBeClosed().
 		WillReturnError(fmt.Errorf("some error"))
 	c.mock.ExpectCommit()
@@ -186,14 +186,35 @@ func (c *ClientPostgresql) TestCreateFailedPrepareStmt() {
 	require.Empty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestCreateFailedQuery() {
+func (c *ClientMysql) TestCreateFailedQuery() {
 	var price1 float64 = 30000
 	c.mock.ExpectBegin()
-	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO product (name, price) VALUES ($1, $2) RETURNING id, name, price`)).
+	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO product (name, price) VALUES (?, ?)`)).
 		WillBeClosed().
 		ExpectQuery().
 		WithArgs("Kaos_Phincon", price1).
 		WillReturnError(fmt.Errorf("some error"))
+	c.mock.ExpectCommit()
+
+	res, err := c.repo.Create([]model.ProductRequest{
+		{
+			Name:  "Kaos_Phincon",
+			Price: 30000,
+		},
+	})
+
+	require.Error(c.T(), err)
+	require.Empty(c.T(), res)
+}
+
+func (c *ClientMysql) TestCreateFailedLastIDIsMinus() {
+	var price1 float64 = 30000
+	c.mock.ExpectBegin()
+	c.mock.ExpectPrepare(regexp.QuoteMeta(`INSERT INTO product (name, price) VALUES (?, ?)`)).
+		WillBeClosed().
+		ExpectExec().
+		WithArgs("Kaos_Phincon", price1).
+		WillReturnResult(sqlmock.NewResult(-1, 1))
 	c.mock.ExpectCommit()
 
 	res, err := c.repo.Create([]model.ProductRequest{

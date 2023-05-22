@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type ClientPostgresql struct {
+type ClientMysql struct {
 	suite.Suite
 	db            *sql.DB
 	mock          sqlmock.Sqlmock
@@ -26,11 +26,11 @@ type ClientPostgresql struct {
 	mockRandom    *random.RandomMock
 }
 
-func TestRepoPostgresql(t *testing.T) {
-	suite.Run(t, new(ClientPostgresql))
+func TestRepoMysql(t *testing.T) {
+	suite.Run(t, new(ClientMysql))
 }
 
-func (c *ClientPostgresql) SetupTest() {
+func (c *ClientMysql) SetupTest() {
 	var err error
 	c.db, c.mock, err = sqlmock.New()
 	if err != nil {
@@ -40,28 +40,28 @@ func (c *ClientPostgresql) SetupTest() {
 	c.mockRandom = random.NewRandom()
 	c.mockPubsliher = publisher.NewPublisher()
 
-	c.repo = NewPostgreSQLHTTPRepository(c.db, c.mockPubsliher, c.mockRandom)
+	c.repo = NewMySQLHTTPRepository(c.db, c.mockPubsliher, c.mockRandom)
 }
 
-func (c *ClientPostgresql) SetupSuite() {
+func (c *ClientMysql) SetupSuite() {
 	log.Println("setup suite     : executed before all of test")
 }
 
-func (c *ClientPostgresql) TearDownTest() {
+func (c *ClientMysql) TearDownTest() {
 	log.Println("setup test      : executed before each of test")
 }
 
-func (c *ClientPostgresql) TearDownSetup() {
+func (c *ClientMysql) TearDownSetup() {
 	log.Println("tear down setup : executed after all of test")
 }
 
-func (c *ClientPostgresql) AfterTest() {
+func (c *ClientMysql) AfterTest() {
 	log.Println("after test      : executed after all of test")
 }
 
-func (c *ClientPostgresql) TestGetTransactionByNumberSuccess() {
-	query1 := `SELECT id, transaction_number, name, quantity, discount, total, pay FROM transaction WHERE transaction_number = $1`
-	query2 := `SELECT id, item, price, quantity, total FROM transaction_detail WHERE transaction_id = $1`
+func (c *ClientMysql) TestGetTransactionByNumberSuccess() {
+	query1 := `SELECT id, transaction_number, name, quantity, discount, total, pay FROM transaction WHERE transaction_number = ?`
+	query2 := `SELECT id, item, price, quantity, total FROM transaction_detail WHERE transaction_id = ?`
 
 	row1 := sqlmock.NewRows([]string{"id", "transaction_number", "name", "quantity", "discount", "total", "pay"}).
 		AddRow(1, 288029617, "Utsman", 11, 0, 480000, 1000000)
@@ -89,8 +89,8 @@ func (c *ClientPostgresql) TestGetTransactionByNumberSuccess() {
 	require.NotEmpty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestGetTransactionByNumberFailPrepareStmt1() {
-	query1 := `SELECT id, transaction_number, name, quantity, discount, total, pay FROM transaction WHERE transaction_number = $1`
+func (c *ClientMysql) TestGetTransactionByNumberFailPrepareStmt1() {
+	query1 := `SELECT id, transaction_number, name, quantity, discount, total, pay FROM transaction WHERE transaction_number = ?`
 
 	c.mock.ExpectPrepare(regexp.QuoteMeta(query1)).
 		WillBeClosed().
@@ -102,8 +102,8 @@ func (c *ClientPostgresql) TestGetTransactionByNumberFailPrepareStmt1() {
 	require.Empty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestGetTransactionByNumberFailQuery1() {
-	query1 := `SELECT id, transaction_number, name, quantity, discount, total, pay FROM transaction WHERE transaction_number = $1`
+func (c *ClientMysql) TestGetTransactionByNumberFailQuery1() {
+	query1 := `SELECT id, transaction_number, name, quantity, discount, total, pay FROM transaction WHERE transaction_number = ?`
 
 	c.mock.ExpectPrepare(regexp.QuoteMeta(query1)).
 		WillBeClosed().
@@ -116,9 +116,9 @@ func (c *ClientPostgresql) TestGetTransactionByNumberFailQuery1() {
 	require.Empty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestGetTransactionByNumberFailPrepareStmt2() {
-	query1 := `SELECT id, transaction_number, name, quantity, discount, total, pay FROM transaction WHERE transaction_number = $1`
-	query2 := `SELECT id, item, price, quantity, total FROM transaction_detail WHERE transaction_id = $1`
+func (c *ClientMysql) TestGetTransactionByNumberFailPrepareStmt2() {
+	query1 := `SELECT id, transaction_number, name, quantity, discount, total, pay FROM transaction WHERE transaction_number = ?`
+	query2 := `SELECT id, item, price, quantity, total FROM transaction_detail WHERE transaction_id = ?`
 
 	row1 := sqlmock.NewRows([]string{"id", "transaction_number", "name", "quantity", "discount", "total", "pay"}).
 		AddRow(1, 288029617, "Utsman", 11, 0, 480000, 1000000)
@@ -138,9 +138,9 @@ func (c *ClientPostgresql) TestGetTransactionByNumberFailPrepareStmt2() {
 	require.Empty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestGetTransactionByNumberFailQuery2() {
-	query1 := `SELECT id, transaction_number, name, quantity, discount, total, pay FROM transaction WHERE transaction_number = $1`
-	query2 := `SELECT id, item, price, quantity, total FROM transaction_detail WHERE transaction_id = $1`
+func (c *ClientMysql) TestGetTransactionByNumberFailQuery2() {
+	query1 := `SELECT id, transaction_number, name, quantity, discount, total, pay FROM transaction WHERE transaction_number = ?`
+	query2 := `SELECT id, item, price, quantity, total FROM transaction_detail WHERE transaction_id = ?`
 
 	row1 := sqlmock.NewRows([]string{"id", "transaction_number", "name", "quantity", "discount", "total", "pay"}).
 		AddRow(1, 288029617, "Utsman", 11, 0, 480000, 1000000)
@@ -161,7 +161,7 @@ func (c *ClientPostgresql) TestGetTransactionByNumberFailQuery2() {
 	require.Empty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestCreateBulkTransactionDetailSuccess() {
+func (c *ClientMysql) TestCreateBulkTransactionDetailSuccess() {
 	c.mockRandom.On("RandomString", 9).Return(548262741, nil)
 	c.mockPubsliher.On("Publish", mock.Anything).Return(nil)
 
@@ -220,7 +220,7 @@ func (c *ClientPostgresql) TestCreateBulkTransactionDetailSuccess() {
 	require.NotEmpty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestCreateBulkTransactionDetailFailedRandomString() {
+func (c *ClientMysql) TestCreateBulkTransactionDetailFailedRandomString() {
 	c.mockRandom.On("RandomString", 9).Return(0, fmt.Errorf("some error at random string"))
 
 	res, err := c.repo.CreateBulkTransactionDetail(
@@ -278,7 +278,7 @@ func (c *ClientPostgresql) TestCreateBulkTransactionDetailFailedRandomString() {
 	require.Empty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestCreateBulkTransactionDetailFailedPayLessThanTotal() {
+func (c *ClientMysql) TestCreateBulkTransactionDetailFailedPayLessThanTotal() {
 	c.mockRandom.On("RandomString", 9).Return(548262741, nil)
 	c.mockPubsliher.On("Publish", mock.Anything).Return(nil)
 
@@ -337,7 +337,7 @@ func (c *ClientPostgresql) TestCreateBulkTransactionDetailFailedPayLessThanTotal
 	require.Empty(c.T(), res)
 }
 
-func (c *ClientPostgresql) TestCreateBulkTransactionDetailFailedPublishtoConsumer() {
+func (c *ClientMysql) TestCreateBulkTransactionDetailFailedPublishtoConsumer() {
 	c.mockRandom.On("RandomString", 9).Return(548262741, nil)
 	c.mockPubsliher.On("Publish", mock.Anything).Return(fmt.Errorf("error publish to consumer"))
 
