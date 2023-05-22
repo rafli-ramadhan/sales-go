@@ -11,7 +11,18 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func Publish(body interface{}) (err error) {
+type publisher struct {
+}
+
+func NewPublisher() *publisher {
+	return &publisher{}
+}
+
+type PublisherInterface interface {
+	Publish(body interface{}) (err error)
+}
+
+func (p *publisher) Publish(body interface{}) (err error) {
 	config, err := config.LoadConfig()
 	if err != nil {
 		err = fmt.Errorf("failed to load config")

@@ -12,13 +12,17 @@ import (
 	"sales-go/publisher"
 )
 
-type repositoryhttppostgresql struct {
-	db *sql.DB
+type repositoryhttppostgresql struct {	
+	db 			*sql.DB
+	publisher	publisher.PublisherInterface
+	random		random.RandomInterface
 }
 
-func NewPostgreSQLHTTPRepository(db *sql.DB) *repositoryhttppostgresql {
+func NewPostgreSQLHTTPRepository(db *sql.DB, publisher publisher.PublisherInterface, random random.RandomInterface) *repositoryhttppostgresql {
 	return &repositoryhttppostgresql{
-		db: db,
+		db: 		db,
+		publisher:	publisher,
+		random: 	random,
 	}
 }
 
@@ -68,10 +72,11 @@ func (repo *repositoryhttppostgresql) GetTransactionByNumber(transactionNumber i
 
 func (repo *repositoryhttppostgresql) CreateBulkTransactionDetail(voucher model.VoucherRequest, listTransactionDetail []model.TransactionDetail, req model.TransactionDetailBulkRequest) (res []model.TransactionDetail, err error) {
 	// generate random integer
-	randomInteger, err := random.RandomString(9)
-    if err != nil {
-        return
-    }
+	randomInteger, err := repo.random.RandomString(9)
+	if err != nil {
+		return
+	}
+	fmt.Println("RANDOM : ", randomInteger)
 
 	// sum all quantity and total
 	var quantity int
@@ -104,7 +109,7 @@ func (repo *repositoryhttppostgresql) CreateBulkTransactionDetail(voucher model.
 	}
 
 	// publish data to RabbitMQ
-	err = publisher.Publish(data)
+	err = repo.publisher.Publish(data)
 	if err != nil {
 		err = fmt.Errorf("error publish data to RabbitMQ : %s", err.Error())
 		return

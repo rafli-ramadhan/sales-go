@@ -16,3 +16,39 @@ go install
 ```bash
 go run main.go
 ```
+
+## Running Swagger UI
+
+- Install OpenAPI (Swagger) Editor via VSCode Extensions
+
+- Open swagger.yml in ./docs
+
+- Press keyboard F1
+
+- Choose OpenAPI: show preview using Swagger UI
+
+## Running Unit Test
+
+```bash
+go test ./usecase/product -v -run TestUsecaseProduct
+```
+
+```bash
+go test ./usecase/transaction -v -run TestUsecaseTransaction
+```
+
+```bash
+go test ./usecase/voucher -v -run TestUsecaseTransaction
+```
+
+```bash
+go test ./repository/product -v -run TestRepoProduct
+```
+
+```bash
+go test ./repository/transaction -v -run TestRepoTransaction
+```
+
+```bash
+go test ./repository/voucher -v -run TestRepoTransaction
+```

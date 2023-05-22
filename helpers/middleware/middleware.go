@@ -1,13 +1,15 @@
 package middleware
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
-	//"io"
+	"io"
 	"net/http"
 	//"net/httptest"
 	"time"
 
-	//"sales-go/helpers/gin-rest"
+	"sales-go/helpers/gin-rest"
 	logger "sales-go/helpers/logging"
 
 	"github.com/gin-gonic/gin"
@@ -28,21 +30,48 @@ func CORSMiddleware() http.Handler {
 	})
 }
 
-func HeaderVerificationMiddleware(ctx *gin.Context) {
-	// hashKeyStr := ctx.GetHeader("key")
+func HeaderVerificationMiddleware(ginCtx *gin.Context) {
+	hashKeyStr := ginCtx.GetHeader("key")
 
-	// request := httptest.NewRequest("GET", "localhost:8080/verification", nil)
-	// recorder := httptest.NewRecorder()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
-	// response := recorder.Result()
-	// body ,_ := io.ReadAll(response.Body) 
-	// fmt.Println(string(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost:8080/verification", nil)
+	if err != nil {
+		ginCtx.AbortWithStatus(http.StatusInternalServerError)
+		rest.ResponseError(ginCtx, http.StatusInternalServerError, err)
+		return
+	}
+	req.Header.Add("key", hashKeyStr)
 
-	// if response.StatusCode == http.StatusUnauthorized {
-	// 	rest.ResponseError(ctx, http.StatusBadRequest, fmt.Errorf("keyEnc is empty or not authorized"))
-	// 	ctx.Abort()
-	// 	return
-	// }
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		ginCtx.AbortWithStatus(http.StatusInternalServerError)
+		rest.ResponseError(ginCtx, http.StatusInternalServerError, err)
+		return
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		ginCtx.AbortWithStatus(http.StatusInternalServerError)
+		rest.ResponseError(ginCtx, http.StatusInternalServerError, err)
+		return
+	}
+
+	var response map[string]interface{}
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		ginCtx.AbortWithStatus(http.StatusInternalServerError)
+		rest.ResponseError(ginCtx, http.StatusInternalServerError, err)
+		return
+	}
+
+	if response["message"] == "Unauthorized" {
+		ginCtx.AbortWithStatus(http.StatusUnauthorized)
+		rest.ResponseError(ginCtx, http.StatusBadRequest, fmt.Errorf("key is empty or not authorized"))
+		return
+	}
 }
 
 func LoggingMiddleware(mux http.Handler) http.Handler {

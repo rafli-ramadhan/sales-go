@@ -101,41 +101,45 @@
 				
 				<option value="file22">sales-go/mocks/product/repo.go (100.0%)</option>
 				
-				<option value="file23">sales-go/mocks/transaction/repo.go (100.0%)</option>
+				<option value="file23">sales-go/mocks/publisher/publisher.go (100.0%)</option>
 				
-				<option value="file24">sales-go/mocks/voucher/repo.go (100.0%)</option>
+				<option value="file24">sales-go/mocks/random/random.go (100.0%)</option>
 				
-				<option value="file25">sales-go/publisher/publisher.go (0.0%)</option>
+				<option value="file25">sales-go/mocks/transaction/repo.go (100.0%)</option>
 				
-				<option value="file26">sales-go/repository/product/product_cli.go (0.0%)</option>
+				<option value="file26">sales-go/mocks/voucher/repo.go (100.0%)</option>
 				
-				<option value="file27">sales-go/repository/product/product_http_json_impl.go (0.0%)</option>
+				<option value="file27">sales-go/publisher/publisher.go (0.0%)</option>
 				
-				<option value="file28">sales-go/repository/product/product_http_mysql_impl.go (0.0%)</option>
+				<option value="file28">sales-go/repository/product/product_cli.go (0.0%)</option>
 				
-				<option value="file29">sales-go/repository/product/product_http_postgresql_impl.go (100.0%)</option>
+				<option value="file29">sales-go/repository/product/product_http_json_impl.go (0.0%)</option>
 				
-				<option value="file30">sales-go/repository/transaction/transaction_cli.go (0.0%)</option>
+				<option value="file30">sales-go/repository/product/product_http_mysql_impl.go (0.0%)</option>
 				
-				<option value="file31">sales-go/repository/transaction/transaction_http_json_impl.go (0.0%)</option>
+				<option value="file31">sales-go/repository/product/product_http_postgresql_impl.go (100.0%)</option>
 				
-				<option value="file32">sales-go/repository/transaction/transaction_http_mysql_impl.go (0.0%)</option>
+				<option value="file32">sales-go/repository/transaction/transaction_cli.go (0.0%)</option>
 				
-				<option value="file33">sales-go/repository/transaction/transaction_http_postgresql_impl.go (53.1%)</option>
+				<option value="file33">sales-go/repository/transaction/transaction_http_json_impl.go (0.0%)</option>
 				
-				<option value="file34">sales-go/repository/voucher/voucher_cli.go (0.0%)</option>
+				<option value="file34">sales-go/repository/transaction/transaction_http_mysql_impl.go (0.0%)</option>
 				
-				<option value="file35">sales-go/repository/voucher/voucher_http_json_impl.go (0.0%)</option>
+				<option value="file35">sales-go/repository/transaction/transaction_http_postgresql_impl.go (100.0%)</option>
 				
-				<option value="file36">sales-go/repository/voucher/voucher_http_mysql_impl.go (0.0%)</option>
+				<option value="file36">sales-go/repository/voucher/voucher_cli.go (0.0%)</option>
 				
-				<option value="file37">sales-go/repository/voucher/voucher_http_postgresql_impl.go (100.0%)</option>
+				<option value="file37">sales-go/repository/voucher/voucher_http_json_impl.go (0.0%)</option>
 				
-				<option value="file38">sales-go/usecase/product/product_usecase.go (100.0%)</option>
+				<option value="file38">sales-go/repository/voucher/voucher_http_mysql_impl.go (0.0%)</option>
 				
-				<option value="file39">sales-go/usecase/transaction/transaction_usecase.go (100.0%)</option>
+				<option value="file39">sales-go/repository/voucher/voucher_http_postgresql_impl.go (100.0%)</option>
 				
-				<option value="file40">sales-go/usecase/voucher/voucher_usecase.go (100.0%)</option>
+				<option value="file40">sales-go/usecase/product/product_usecase.go (100.0%)</option>
+				
+				<option value="file41">sales-go/usecase/transaction/transaction_usecase.go (100.0%)</option>
+				
+				<option value="file42">sales-go/usecase/voucher/voucher_usecase.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -1239,13 +1243,15 @@ func Errorf(err error, r *http.Request) <span class="cov0" title="0">{
 		<pre class="file" id="file18" style="display: none">package middleware
 
 import (
+        "context"
+        "encoding/json"
         "fmt"
-        //"io"
+        "io"
         "net/http"
         //"net/httptest"
         "time"
 
-        //"sales-go/helpers/gin-rest"
+        "sales-go/helpers/gin-rest"
         logger "sales-go/helpers/logging"
 
         "github.com/gin-gonic/gin"
@@ -1266,22 +1272,49 @@ func CORSMiddleware() http.Handler <span class="cov0" title="0">{
         })
 }
 
-func HeaderVerificationMiddleware(ctx *gin.Context) {<span class="cov0" title="0">
-        // hashKeyStr := ctx.GetHeader("key")
+func HeaderVerificationMiddleware(ginCtx *gin.Context) <span class="cov0" title="0">{
+        hashKeyStr := ginCtx.GetHeader("key")
 
-        // request := httptest.NewRequest("GET", "localhost:8080/verification", nil)
-        // recorder := httptest.NewRecorder()
+        ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+        defer cancel()
 
-        // response := recorder.Result()
-        // body ,_ := io.ReadAll(response.Body) 
-        // fmt.Println(string(body))
+        req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost:8080/verification", nil)
+        if err != nil </span><span class="cov0" title="0">{
+                ginCtx.AbortWithStatus(http.StatusInternalServerError)
+                rest.ResponseError(ginCtx, http.StatusInternalServerError, err)
+                return
+        }</span>
+        <span class="cov0" title="0">req.Header.Add("key", hashKeyStr)
 
-        // if response.StatusCode == http.StatusUnauthorized {
-        //         rest.ResponseError(ctx, http.StatusBadRequest, fmt.Errorf("keyEnc is empty or not authorized"))
-        //         ctx.Abort()
-        //         return
-        // }
-}</span>
+        res, err := http.DefaultClient.Do(req)
+        if err != nil </span><span class="cov0" title="0">{
+                ginCtx.AbortWithStatus(http.StatusInternalServerError)
+                rest.ResponseError(ginCtx, http.StatusInternalServerError, err)
+                return
+        }</span>
+        <span class="cov0" title="0">defer res.Body.Close()
+
+        body, err := io.ReadAll(res.Body)
+        if err != nil </span><span class="cov0" title="0">{
+                ginCtx.AbortWithStatus(http.StatusInternalServerError)
+                rest.ResponseError(ginCtx, http.StatusInternalServerError, err)
+                return
+        }</span>
+
+        <span class="cov0" title="0">var response map[string]interface{}
+        err = json.Unmarshal(body, &amp;response)
+        if err != nil </span><span class="cov0" title="0">{
+                ginCtx.AbortWithStatus(http.StatusInternalServerError)
+                rest.ResponseError(ginCtx, http.StatusInternalServerError, err)
+                return
+        }</span>
+
+        <span class="cov0" title="0">if response["message"] == "Unauthorized" </span><span class="cov0" title="0">{
+                ginCtx.AbortWithStatus(http.StatusUnauthorized)
+                rest.ResponseError(ginCtx, http.StatusBadRequest, fmt.Errorf("key is empty or not authorized"))
+                return
+        }</span>
+}
 
 func LoggingMiddleware(mux http.Handler) http.Handler <span class="cov0" title="0">{
         return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
@@ -1327,14 +1360,27 @@ func Use(middleware ...http.Handler) []http.Handler <span class="cov0" title="0"
 import (
         "math/rand"
         "strconv"
+        "time"
 )
 
-func RandomString(length int) (int, error) <span class="cov0" title="0">{
+type random struct {
+}
+
+func NewRandom() *random <span class="cov0" title="0">{
+        return &amp;random{}
+}</span>
+
+type RandomInterface interface {
+        RandomString(length int) (int, error)
+}
+
+func (r *random) RandomString(length int) (int, error) <span class="cov0" title="0">{
+        randomizer := rand.New(rand.NewSource(time.Now().Unix()))
         letters := []rune("1234567890")
 
         b := make([]rune, length)
         for i := range b </span><span class="cov0" title="0">{
-                b[i] = letters[rand.Intn(len(letters))]
+                b[i] = letters[randomizer.Intn(len(letters))]
         }</span>
 
         <span class="cov0" title="0">integer, err := strconv.Atoi(string(b))
@@ -1416,6 +1462,8 @@ import (
         "sales-go/config"
         "sales-go/helpers/clearscreen"
         "sales-go/helpers/middleware"
+        "sales-go/helpers/random"
+        "sales-go/publisher"
 
         // handler
         "sales-go/handler/product"
@@ -1453,8 +1501,11 @@ func main() <span class="cov0" title="0">{
                         panic(err)</span>
                 }
 
-                <span class="cov0" title="0">productRepository := productRepo.NewPostgreSQLHTTPRepository(DB)
-                transactionRepository := transactionRepo.NewPostgreSQLHTTPRepository(DB)
+                <span class="cov0" title="0">publisher := publisher.NewPublisher()
+                random := random.NewRandom()
+
+                productRepository := productRepo.NewPostgreSQLHTTPRepository(DB)
+                transactionRepository := transactionRepo.NewPostgreSQLHTTPRepository(DB, publisher, random)
                 voucherRepository := voucherRepo.NewPostgreSQLHTTPRepository(DB)
 
                 productUsecase := productUsecase.NewDBHTTPUsecase(productRepository)
@@ -1472,8 +1523,11 @@ func main() <span class="cov0" title="0">{
                         panic(err)</span>
                 }
 
-                <span class="cov0" title="0">productRepository := productRepo.NewPostgreSQLHTTPRepository(db)
-                transactionRepository := transactionRepo.NewPostgreSQLHTTPRepository(db)
+                <span class="cov0" title="0">publisher := publisher.NewPublisher()
+                random := random.NewRandom()
+
+                productRepository := productRepo.NewPostgreSQLHTTPRepository(db)
+                transactionRepository := transactionRepo.NewPostgreSQLHTTPRepository(db, publisher, random)
                 voucherRepository := voucherRepo.NewPostgreSQLHTTPRepository(db)
 
                 productUsecase := productUsecase.NewDBHTTPUsecase(productRepository)
@@ -1491,8 +1545,10 @@ func main() <span class="cov0" title="0">{
                         panic(err)</span>
                 }
 
-                <span class="cov0" title="0">productRepository := productRepo.NewMySQLHTTPRepository(db)
-                transactionRepository := transactionRepo.NewMySQLHTTPRepository(db)
+                <span class="cov0" title="0">random := random.NewRandom()
+
+                productRepository := productRepo.NewMySQLHTTPRepository(db)
+                transactionRepository := transactionRepo.NewMySQLHTTPRepository(db, random)
                 voucherRepository := voucherRepo.NewMySQLHTTPRepository(db)
                 
                 productUsecase := productUsecase.NewDBHTTPUsecase(productRepository)
@@ -1509,8 +1565,12 @@ func main() <span class="cov0" title="0">{
                 if err != nil </span><span class="cov0" title="0">{
                         panic(err)</span>
                 }
-                <span class="cov0" title="0">productRepository := productRepo.NewPostgreSQLHTTPRepository(db)
-                transactionRepository := transactionRepo.NewPostgreSQLHTTPRepository(db)
+                
+                <span class="cov0" title="0">publisher := publisher.NewPublisher()
+                random := random.NewRandom()
+
+                productRepository := productRepo.NewPostgreSQLHTTPRepository(db)
+                transactionRepository := transactionRepo.NewPostgreSQLHTTPRepository(db, publisher, random)
                 voucherRepository := voucherRepo.NewPostgreSQLHTTPRepository(db)
                 
                 productUsecase := productUsecase.NewDBHTTPUsecase(productRepository)
@@ -1732,7 +1792,52 @@ func (m *RepoMock) Create(req []model.ProductRequest) (result []model.Product, e
 }</span>
 </pre>
 		
-		<pre class="file" id="file23" style="display: none">package transaction
+		<pre class="file" id="file23" style="display: none">package publisher
+
+import (
+        "github.com/stretchr/testify/mock"
+)
+
+type PublisherMock struct {
+        mock.Mock
+}
+
+func NewPublisher() *PublisherMock <span class="cov8" title="1">{
+        return &amp;PublisherMock{}
+}</span>
+
+func (m *PublisherMock) Publish(body interface{}) (err error) <span class="cov8" title="1">{
+        // sebagai indikator parameter diperoleh
+        ret := m.Called(body)
+        err = ret.Error(0)
+        return
+}</span>
+</pre>
+		
+		<pre class="file" id="file24" style="display: none">package random
+
+import (
+        "github.com/stretchr/testify/mock"
+)
+
+type RandomMock struct {
+        mock.Mock
+}
+
+func NewRandom() *RandomMock <span class="cov8" title="1">{
+        return &amp;RandomMock{}
+}</span>
+
+func (m *RandomMock) RandomString(length int) (int, error) <span class="cov8" title="1">{
+        // sebagai indikator parameter diperoleh
+        ret := m.Called(length)
+        randomNumber := ret.Get(0).(int)
+        err := ret.Error(1)
+        return randomNumber, err
+}</span>
+</pre>
+		
+		<pre class="file" id="file25" style="display: none">package transaction
 
 import (
         "sales-go/model"
@@ -1765,7 +1870,7 @@ func (m *RepoMock) CreateBulkTransactionDetail(voucher model.VoucherRequest, lis
 }</span>
 </pre>
 		
-		<pre class="file" id="file24" style="display: none">package voucher
+		<pre class="file" id="file26" style="display: none">package voucher
 
 import (
         "sales-go/model"
@@ -1807,7 +1912,7 @@ func (m *RepoMock) Create(req []model.VoucherRequest) (response []model.Voucher,
 }</span>
 </pre>
 		
-		<pre class="file" id="file25" style="display: none">package publisher
+		<pre class="file" id="file27" style="display: none">package publisher
 
 import (
         "context"
@@ -1820,7 +1925,18 @@ import (
         amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func Publish(body interface{}) (err error) <span class="cov0" title="0">{
+type publisher struct {
+}
+
+func NewPublisher() *publisher <span class="cov0" title="0">{
+        return &amp;publisher{}
+}</span>
+
+type PublisherInterface interface {
+        Publish(body interface{}) (err error)
+}
+
+func (p *publisher) Publish(body interface{}) (err error) <span class="cov0" title="0">{
         config, err := config.LoadConfig()
         if err != nil </span><span class="cov0" title="0">{
                 err = fmt.Errorf("failed to load config")
@@ -1881,7 +1997,7 @@ func Publish(body interface{}) (err error) <span class="cov0" title="0">{
         return</span>
 }</pre>
 		
-		<pre class="file" id="file26" style="display: none">package product
+		<pre class="file" id="file28" style="display: none">package product
 
 import (
         "errors"
@@ -1926,7 +2042,7 @@ func (repo *repositorycli) Create(req []model.ProductRequest) (result []model.Pr
         <span class="cov0" title="0">return</span>
 }</pre>
 		
-		<pre class="file" id="file27" style="display: none">package product
+		<pre class="file" id="file29" style="display: none">package product
 
 import (
         "encoding/json"
@@ -2039,7 +2155,7 @@ func (repo *repositoryjson) Create(req []model.ProductRequest) (result []model.P
 }
 </pre>
 		
-		<pre class="file" id="file28" style="display: none">package product
+		<pre class="file" id="file30" style="display: none">package product
 
 import (
         "context"
@@ -2150,7 +2266,7 @@ func (repo *repositoryhttpmysql) Create(req []model.ProductRequest) (result []mo
 }
 </pre>
 		
-		<pre class="file" id="file29" style="display: none">package product
+		<pre class="file" id="file31" style="display: none">package product
 
 import (
         "context"
@@ -2246,7 +2362,7 @@ func (repo *repositoryhttppostgresql) Create(req []model.ProductRequest) (result
 }
 </pre>
 		
-		<pre class="file" id="file30" style="display: none">package transaction
+		<pre class="file" id="file32" style="display: none">package transaction
 
 import (
         "errors"
@@ -2334,7 +2450,7 @@ func (repo *repositorycli) CreateBulkTransactionDetail(voucher model.VoucherRequ
 }
 </pre>
 		
-		<pre class="file" id="file31" style="display: none">package transaction
+		<pre class="file" id="file33" style="display: none">package transaction
 
 import (
         "encoding/json"
@@ -2478,7 +2594,7 @@ func (repo *repositoryjson) CreateBulkTransactionDetail(voucher model.VoucherReq
 }
 </pre>
 		
-		<pre class="file" id="file32" style="display: none">package transaction
+		<pre class="file" id="file34" style="display: none">package transaction
 
 import (
         "context"
@@ -2492,12 +2608,14 @@ import (
 )
 
 type repositoryhttpmysql struct {
-        db *sql.DB
+        db                 *sql.DB
+        random        random.RandomInterface
 }
 
-func NewMySQLHTTPRepository(db *sql.DB) *repositoryhttpmysql <span class="cov0" title="0">{
+func NewMySQLHTTPRepository(db *sql.DB, random random.RandomInterface) *repositoryhttpmysql <span class="cov0" title="0">{
         return &amp;repositoryhttpmysql{
-                db: db,
+                db:         db,
+                random: random,
         }
 }</span>
 
@@ -2568,7 +2686,7 @@ func (repo *repositoryhttpmysql) CreateBulkTransactionDetail(voucher model.Vouch
         }</span>
 
         // generate random integer
-        <span class="cov0" title="0">randomInteger, err := random.RandomString(9)
+        <span class="cov0" title="0">randomInteger, err := repo.random.RandomString(9)
     if err != nil </span><span class="cov0" title="0">{
         return
     }</span>
@@ -2644,7 +2762,7 @@ func (repo *repositoryhttpmysql) CreateBulkTransactionDetail(voucher model.Vouch
 }
 </pre>
 		
-		<pre class="file" id="file33" style="display: none">package transaction
+		<pre class="file" id="file35" style="display: none">package transaction
 
 import (
         "context"
@@ -2658,13 +2776,17 @@ import (
         "sales-go/publisher"
 )
 
-type repositoryhttppostgresql struct {
-        db *sql.DB
+type repositoryhttppostgresql struct {        
+        db                         *sql.DB
+        publisher        publisher.PublisherInterface
+        random                random.RandomInterface
 }
 
-func NewPostgreSQLHTTPRepository(db *sql.DB) *repositoryhttppostgresql <span class="cov8" title="1">{
+func NewPostgreSQLHTTPRepository(db *sql.DB, publisher publisher.PublisherInterface, random random.RandomInterface) *repositoryhttppostgresql <span class="cov8" title="1">{
         return &amp;repositoryhttppostgresql{
-                db: db,
+                db:                 db,
+                publisher:        publisher,
+                random:         random,
         }
 }</span>
 
@@ -2712,34 +2834,35 @@ func (repo *repositoryhttppostgresql) GetTransactionByNumber(transactionNumber i
         <span class="cov8" title="1">return</span>
 }
 
-func (repo *repositoryhttppostgresql) CreateBulkTransactionDetail(voucher model.VoucherRequest, listTransactionDetail []model.TransactionDetail, req model.TransactionDetailBulkRequest) (res []model.TransactionDetail, err error) <span class="cov0" title="0">{
+func (repo *repositoryhttppostgresql) CreateBulkTransactionDetail(voucher model.VoucherRequest, listTransactionDetail []model.TransactionDetail, req model.TransactionDetailBulkRequest) (res []model.TransactionDetail, err error) <span class="cov8" title="1">{
         // generate random integer
-        randomInteger, err := random.RandomString(9)
-    if err != nil </span><span class="cov0" title="0">{
-        return
-    }</span>
+        randomInteger, err := repo.random.RandomString(9)
+        if err != nil </span><span class="cov8" title="1">{
+                return
+        }</span>
+        <span class="cov8" title="1">fmt.Println("RANDOM : ", randomInteger)
 
         // sum all quantity and total
-        <span class="cov0" title="0">var quantity int
+        var quantity int
         var total float64
-        for _, item := range listTransactionDetail </span><span class="cov0" title="0">{
+        for _, item := range listTransactionDetail </span><span class="cov8" title="1">{
                 quantity = quantity + item.Quantity
                 total = total + item.Total
         }</span>
 
         // discount calculation
-        <span class="cov0" title="0">var discount float64
-        if total &gt; 300000 &amp;&amp; voucher.Persen &gt; 0 </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">var discount float64
+        if total &gt; 300000 &amp;&amp; voucher.Persen &gt; 0 </span><span class="cov8" title="1">{
                 discount = voucher.Persen/100
                 total = total*(1-discount)
         }</span>
 
-        <span class="cov0" title="0">if req.Pay &lt; total </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if req.Pay &lt; total </span><span class="cov8" title="1">{
                 err = errors.New("pay must be &gt; total")
                 return
         }</span>
         
-        <span class="cov0" title="0">data := model.TransactionRabbitMQData{
+        <span class="cov8" title="1">data := model.TransactionRabbitMQData{
                 Name:                                        req.Name,
                 RandomInteger:                        randomInteger,
                 Quantity:                                quantity,
@@ -2750,13 +2873,13 @@ func (repo *repositoryhttppostgresql) CreateBulkTransactionDetail(voucher model.
         }
 
         // publish data to RabbitMQ
-        err = publisher.Publish(data)
-        if err != nil </span><span class="cov0" title="0">{
+        err = repo.publisher.Publish(data)
+        if err != nil </span><span class="cov8" title="1">{
                 err = fmt.Errorf("error publish data to RabbitMQ : %s", err.Error())
                 return
         }</span>
 
-        <span class="cov0" title="0">for _, v := range data.ListTransactionDetail </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">for _, v := range data.ListTransactionDetail </span><span class="cov8" title="1">{
                 res = append(res,  model.TransactionDetail{
                         Item:          v.Item,
                         Price:          v.Price,
@@ -2773,11 +2896,11 @@ func (repo *repositoryhttppostgresql) CreateBulkTransactionDetail(voucher model.
                 })
         }</span>
 
-        <span class="cov0" title="0">return</span>
+        <span class="cov8" title="1">return</span>
 }
 </pre>
 		
-		<pre class="file" id="file34" style="display: none">package voucher
+		<pre class="file" id="file36" style="display: none">package voucher
 
 import (
         "errors"
@@ -2822,7 +2945,7 @@ func (repo *repositorycli) Create(req []model.VoucherRequest) (response []model.
         <span class="cov0" title="0">return</span>
 }</pre>
 		
-		<pre class="file" id="file35" style="display: none">package voucher
+		<pre class="file" id="file37" style="display: none">package voucher
 
 import (
         "encoding/json"
@@ -2937,7 +3060,7 @@ func (repo *repositoryjson) Create(req []model.VoucherRequest) (response []model
 }
 </pre>
 		
-		<pre class="file" id="file36" style="display: none">package voucher
+		<pre class="file" id="file38" style="display: none">package voucher
 
 import (
         "fmt"
@@ -3049,7 +3172,7 @@ func (repo *repositoryhttpmysql) Create(req []model.VoucherRequest) (response []
 }
 </pre>
 		
-		<pre class="file" id="file37" style="display: none">package voucher
+		<pre class="file" id="file39" style="display: none">package voucher
 
 import (
         "context"
@@ -3144,7 +3267,7 @@ func (repo *repositoryhttppostgresql) Create(req []model.VoucherRequest) (respon
 }
 </pre>
 		
-		<pre class="file" id="file38" style="display: none">package product
+		<pre class="file" id="file40" style="display: none">package product
 
 import (
         "fmt"
@@ -3210,7 +3333,7 @@ func (uc *usecase) Create(req []model.ProductRequest) (response []model.Product,
         <span class="cov8" title="1">return</span>
 }</pre>
 		
-		<pre class="file" id="file39" style="display: none">package transaction
+		<pre class="file" id="file41" style="display: none">package transaction
 
 import (
         "errors"
@@ -3298,7 +3421,7 @@ func (uc *usecase) CreateBulkTransactionDetail(voucherCode string, req model.Tra
         <span class="cov8" title="1">return</span>
 }</pre>
 		
-		<pre class="file" id="file40" style="display: none">package voucher
+		<pre class="file" id="file42" style="display: none">package voucher
 
 import (
         "errors"

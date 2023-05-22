@@ -12,12 +12,14 @@ import (
 )
 
 type repositoryhttpmysql struct {
-	db *sql.DB
+	db 		*sql.DB
+	random	random.RandomInterface
 }
 
-func NewMySQLHTTPRepository(db *sql.DB) *repositoryhttpmysql {
+func NewMySQLHTTPRepository(db *sql.DB, random random.RandomInterface) *repositoryhttpmysql {
 	return &repositoryhttpmysql{
-		db: db,
+		db: 	db,
+		random: random,
 	}
 }
 
@@ -88,7 +90,7 @@ func (repo *repositoryhttpmysql) CreateBulkTransactionDetail(voucher model.Vouch
 	}
 
 	// generate random integer
-	randomInteger, err := random.RandomString(9)
+	randomInteger, err := repo.random.RandomString(9)
     if err != nil {
         return
     }

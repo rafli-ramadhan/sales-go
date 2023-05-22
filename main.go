@@ -13,6 +13,8 @@ import (
 	"sales-go/config"
 	"sales-go/helpers/clearscreen"
 	"sales-go/helpers/middleware"
+	"sales-go/helpers/random"
+	"sales-go/publisher"
 
 	// handler
 	"sales-go/handler/product"
@@ -50,8 +52,11 @@ func main() {
 			panic(err)
 		}
 
+		publisher := publisher.NewPublisher()
+		random := random.NewRandom()
+
 		productRepository := productRepo.NewPostgreSQLHTTPRepository(DB)
-		transactionRepository := transactionRepo.NewPostgreSQLHTTPRepository(DB)
+		transactionRepository := transactionRepo.NewPostgreSQLHTTPRepository(DB, publisher, random)
 		voucherRepository := voucherRepo.NewPostgreSQLHTTPRepository(DB)
 
 		productUsecase := productUsecase.NewDBHTTPUsecase(productRepository)
@@ -69,8 +74,11 @@ func main() {
 			panic(err)
 		}
 
+		publisher := publisher.NewPublisher()
+		random := random.NewRandom()
+
 		productRepository := productRepo.NewPostgreSQLHTTPRepository(db)
-		transactionRepository := transactionRepo.NewPostgreSQLHTTPRepository(db)
+		transactionRepository := transactionRepo.NewPostgreSQLHTTPRepository(db, publisher, random)
 		voucherRepository := voucherRepo.NewPostgreSQLHTTPRepository(db)
 
 		productUsecase := productUsecase.NewDBHTTPUsecase(productRepository)
@@ -88,8 +96,10 @@ func main() {
 			panic(err)
 		}
 
+		random := random.NewRandom()
+
 		productRepository := productRepo.NewMySQLHTTPRepository(db)
-		transactionRepository := transactionRepo.NewMySQLHTTPRepository(db)
+		transactionRepository := transactionRepo.NewMySQLHTTPRepository(db, random)
 		voucherRepository := voucherRepo.NewMySQLHTTPRepository(db)
 		
 		productUsecase := productUsecase.NewDBHTTPUsecase(productRepository)
@@ -106,8 +116,12 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+		
+		publisher := publisher.NewPublisher()
+		random := random.NewRandom()
+
 		productRepository := productRepo.NewPostgreSQLHTTPRepository(db)
-		transactionRepository := transactionRepo.NewPostgreSQLHTTPRepository(db)
+		transactionRepository := transactionRepo.NewPostgreSQLHTTPRepository(db, publisher, random)
 		voucherRepository := voucherRepo.NewPostgreSQLHTTPRepository(db)
 		
 		productUsecase := productUsecase.NewDBHTTPUsecase(productRepository)
