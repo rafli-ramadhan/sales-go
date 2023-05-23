@@ -72,7 +72,7 @@ func (repo *repositoryhttppostgresql) Create(req []model.VoucherRequest) (respon
 	}
 
 	query := `INSERT INTO voucher (code, persen) VALUES ($1, $2) RETURNING id, code, persen`
-	stmt, err := repo.db.PrepareContext(ctx, query)
+	stmt, err := trx.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}

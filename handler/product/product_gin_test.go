@@ -1,13 +1,15 @@
 package product
 
 import (
-	// "bytes"
-	// "encoding/json"
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
 	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"sales-go/model"
@@ -21,18 +23,18 @@ func TestHandlerGin(t *testing.T) {
 
 		ucMock.On("GetList").Return([]model.Product{
 			{
-				Id: 1,
-				Name: "Kaos_Phincon_2",
+				Id:    1,
+				Name:  "Kaos_Phincon_2",
 				Price: 30000,
 			},
 			{
-				Id: 2,
-				Name: "Lanyard_Phincon",
+				Id:    2,
+				Name:  "Lanyard_Phincon",
 				Price: 80000,
 			},
 			{
-				Id: 3,
-				Name: "Lanyard_Phincon_2",
+				Id:    3,
+				Name:  "Lanyard_Phincon_2",
 				Price: 80000,
 			},
 		}, nil)
@@ -47,7 +49,7 @@ func TestHandlerGin(t *testing.T) {
 
 		require.Equal(t, http.StatusOK, response.StatusCode)
 	})
-	
+
 	t.Run("test handler get list product failed", func(t *testing.T) {
 		ucMock := product.NewProductUsecaseMock()
 		handler := NewGinDBHTTPHandler(ucMock)
@@ -65,51 +67,59 @@ func TestHandlerGin(t *testing.T) {
 		require.Equal(t, http.StatusInternalServerError, response.StatusCode)
 	})
 
-	// t.Run("test handler create multiple product success", func(t *testing.T) {
-	// 	ucMock := product.NewProductUsecaseMock()
-	// 	handler := NewGinDBHTTPHandler(ucMock)
+	t.Run("test handler create multiple product success", func(t *testing.T) {
+		gin.SetMode(gin.TestMode)
+		ucMock := product.NewProductUsecaseMock()
+		handler := NewGinDBHTTPHandler(ucMock)
 
-	// 	req := []model.ProductRequest{
-	// 		{
-	// 				Name: "Kaos_Phincon",
-	// 				Price: 30000,
-	// 		},
-	// 		{
-	// 				Name: "Lanyard_Phincon",
-	// 				Price: 80000,
-	// 		},
-	// 	}
-	// 	ucMock.On("Create", req).Return([]model.Product{
-	// 		{
-	// 			Id: 1,
-	// 			Name: "Kaos_Phincon",
-	// 			Price: 30000,
-	// 		},
-	// 		{
-	// 			Id: 2,
-	// 			Name: "Lanyard_Phincon",
-	// 			Price: 80000,
-	// 		},
-	// 	}, nil)
+		req := []model.ProductRequest{
+			{
+				Name:  "Kaos_Phincon",
+				Price: 30000,
+			},
+			{
+				Name:  "Lanyard_Phincon",
+				Price: 80000,
+			},
+		}
 
-	// 	jsonByte, err := json.Marshal(req)
-	// 	if err != nil {
-	// 		t.Error(err)
-	// 	}
-	// 	body := bytes.NewReader(jsonByte)
-	// 	fmt.Println("BODY : ", body)
+		ucMock.On("Create", mock.Anything).Return([]model.Product{
+			{
+				Id:    1,
+				Name:  "Kaos_Phincon",
+				Price: 30000,
+			},
+			{
+				Id:    2,
+				Name:  "Lanyard_Phincon",
+				Price: 80000,
+			},
+		}, nil)
 
-	// 	request := httptest.NewRequest(http.MethodPost, "http://localhost:5000/product", body)
-	// 	recorder := httptest.NewRecorder()
-	// 	c, _ := gin.CreateTestContext(recorder)
-	// 	c.Request = request
-	// 	fmt.Println("c Request : ", c.Request)
+		jsonByte, err := json.Marshal(req)
+		if err != nil {
+			t.Error(err)
+		}
+		bodyBuff := new(bytes.Buffer)
+		err = json.NewEncoder(bodyBuff).Encode(jsonByte)
+		if err != nil {
+			t.Error(err)
+		}
 
-	// 	handler.Create(c)
-	// 	response := recorder.Result()
+		request := httptest.NewRequest(http.MethodPost, "http://localhost:5000/product", bodyBuff)
+		recorder := httptest.NewRecorder()
 
-	// 	require.Equal(t, http.StatusOK, response.StatusCode)
-	// })
+		c, _ := gin.CreateTestContext(recorder)
+		c.Request = request
+
+		handler.Create(c)
+		response := recorder.Result()
+
+		fmt.Println("recorder code : ", recorder.Code)
+		fmt.Println("recorder body : ", recorder.Body.String())
+		fmt.Println("recorder body : ", request)
+		require.Equal(t, http.StatusCreated, response.StatusCode)
+	})
 
 	// t.Run("test handler create multiple product failed : json decoder", func(t *testing.T) {
 	// 	ucMock := product.NewProductUsecaseMock()

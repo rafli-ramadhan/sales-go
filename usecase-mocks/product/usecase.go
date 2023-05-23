@@ -34,6 +34,8 @@ func (m *UsecaseMock) Create(req []model.ProductRequest) (response []model.Produ
 	// sebagai indikator parameter diperoleh
 	ret := m.Called(req)
 	response = ret.Get(0).([]model.Product)
-	err = ret.Error(1)
+	if ret.Get(1) != nil {
+		err = ret.Get(1).(error)
+	}
 	return response, err
 }

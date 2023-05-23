@@ -9,7 +9,7 @@ import (
 )
 
 type repositoryhttpmysql struct {
-	db *sql.DB	
+	db *sql.DB
 }
 
 func NewMySQLHTTPRepository(db *sql.DB) *repositoryhttpmysql {
@@ -80,11 +80,11 @@ func (repo *repositoryhttpmysql) Create(req []model.ProductRequest) (result []mo
 	}
 
 	query := `INSERT INTO product (name, price) VALUES (?, ?)`
-	stmt, err := repo.db.PrepareContext(ctx, query)
+	stmt, err := trx.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}
-	
+
 	for _, v := range req {
 		res, err := stmt.ExecContext(ctx, v.Name, v.Price)
 		if err != nil {

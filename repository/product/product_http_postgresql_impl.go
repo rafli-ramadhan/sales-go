@@ -73,7 +73,7 @@ func (repo *repositoryhttppostgresql) Create(req []model.ProductRequest) (result
 	}
 
 	query := `INSERT INTO product (name, price) VALUES ($1, $2) RETURNING id, name, price`
-	stmt, err := repo.db.PrepareContext(ctx, query)
+	stmt, err := trx.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}

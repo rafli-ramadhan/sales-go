@@ -80,7 +80,7 @@ func (repo *repositoryhttpmysql) Create(req []model.VoucherRequest) (response []
 	}
 
 	query := `INSERT INTO voucher (code, persen) values (?, ?)`
-	stmt, err := repo.db.PrepareContext(ctx, query)
+	stmt, err := trx.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}
