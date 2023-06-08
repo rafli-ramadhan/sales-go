@@ -17,15 +17,23 @@ func NewTransactionUsecaseMock() *UsecaseMock {
 func (m *UsecaseMock) GetTransactionByNumber(number int) (response []model.TransactionDetail, err error) {
 	// sebagai indikator parameter diperoleh
 	ret := m.Called(number)
+	// get return value dari mock
 	response = ret.Get(0).([]model.TransactionDetail)
-	err = ret.Error(1)
+	if ret.Get(1) != nil {
+		// type assertion
+		err = ret.Get(1).(error)
+	}
 	return response, err
 }
 
 func (m *UsecaseMock) CreateBulkTransactionDetail(voucherCode string, req model.TransactionDetailBulkRequest) (response []model.TransactionDetail, err error) {
 	// sebagai indikator parameter diperoleh
 	ret := m.Called(voucherCode, req)
+	// get return value dari mock
 	response = ret.Get(0).([]model.TransactionDetail)
-	err = ret.Error(1)
+	if ret.Get(1) != nil {
+		// type assertion
+		err = ret.Get(1).(error)
+	}
 	return response, err
 }

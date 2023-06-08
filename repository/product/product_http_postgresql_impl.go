@@ -38,6 +38,8 @@ func (repo *repositoryhttppostgresql) GetList() (listProduct []model.Product, er
 
 		listProduct = append(listProduct, temp)
 	}
+	// close prepare statement
+	stmt.Close()
 
 	return
 }
@@ -60,6 +62,8 @@ func (repo *repositoryhttppostgresql) GetProductByName(name string) (productData
 	for res.Next() {
 		res.Scan(&productData.Id, &productData.Name, &productData.Price)
 	}
+	// close prepare statement
+	stmt.Close()
 	return
 }
 
@@ -90,5 +94,7 @@ func (repo *repositoryhttppostgresql) Create(req []model.ProductRequest) (result
 
 	trx.Commit()
 
+	// close prepare statement
+	stmt.Close()
 	return
 }

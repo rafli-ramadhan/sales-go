@@ -9,7 +9,7 @@ import (
 	"sales-go/model"
 )
 
-func TestUseCaseProduct(t *testing.T) {
+func TestUseCase(t *testing.T) {
 	t.Run("test get list product success", func(t *testing.T) {
 		mockSuccess := product.NewProductRepoMock()
 		usecase := NewDBHTTPUsecase(mockSuccess)
@@ -45,6 +45,7 @@ func TestUseCaseProduct(t *testing.T) {
 		mockSuccess := product.NewProductRepoMock()
 		usecase := NewDBHTTPUsecase(mockSuccess)
 
+		// ReturnArguments()
 		mockSuccess.On("GetList").Return([]model.Product{}, fmt.Errorf("some error"))
 
 		res, err := usecase.GetList()

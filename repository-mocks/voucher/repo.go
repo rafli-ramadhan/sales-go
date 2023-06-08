@@ -18,23 +18,35 @@ func NewVoucherRepoMock() *RepoMock {
 func (m *RepoMock) GetList() (listVoucher []model.Voucher, err error) {
 	// sebagai indikator parameter diperoleh
 	ret := m.Called()
+	// get return value dari mock
 	listVoucher = ret.Get(0).([]model.Voucher)
-	err = ret.Error(1)
-	return listVoucher, err
+	if ret.Get(1) != nil {
+		// type assertion
+		err = ret.Get(1).(error)
+	}
+	return
 }
 
 func (m *RepoMock) GetVoucherByCode(code string) (voucherData model.Voucher, err error) {
 	// sebagai indikator parameter diperoleh
 	ret := m.Called(code)
+	// get return value dari mock
 	voucherData = ret.Get(0).(model.Voucher)
-	err = ret.Error(1)
-	return voucherData, err
+	if ret.Get(1) != nil {
+		// type assertion
+		err = ret.Get(1).(error)
+	}
+	return
 }
 
 func (m *RepoMock) Create(req []model.VoucherRequest) (response []model.Voucher, err error) {
 	// sebagai indikator parameter diperoleh
 	ret := m.Called(req)
+	// get return value dari mock
 	response = ret.Get(0).([]model.Voucher)
-	err = ret.Error(1)
-	return response, err
+	if ret.Get(1) != nil {
+		// type assertion
+		err = ret.Get(1).(error)
+	}
+	return
 }

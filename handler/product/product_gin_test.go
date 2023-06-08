@@ -6,14 +6,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sales-go/model"
+	"sales-go/usecase-mocks/product"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
-	"sales-go/model"
-	"sales-go/usecase-mocks/product"
 )
 
 func TestHandlerGin(t *testing.T) {

@@ -60,7 +60,7 @@ func (dbOpt dbOption) GetDBConnection() (db *sql.DB, err error) {
 		logging.Infof(fmt.Sprintf("Running %s on %s on port %s\n", dbOpt.Database, conDB.MySQL.Host, conDB.MySQL.Port), req)
 	} else if dbOpt.Database == "postgresql" {
 		logging.Infof(fmt.Sprintf("Running %s on %s on port %s\n", dbOpt.Database, conDB.PostgreSQL.Host, conDB.PostgreSQL.Port), req)
-	} 
+	}
 
 	db.SetMaxIdleConns(2)
 	db.SetMaxOpenConns(5)

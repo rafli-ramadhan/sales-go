@@ -3,8 +3,6 @@ package rest
 import (
 	"encoding/json"
 	"net/http"
-
-	logger "sales-go/helpers/logging"
 )
 
 type RestError struct {
@@ -14,8 +12,6 @@ type RestError struct {
 }
 
 func ResponseError(w http.ResponseWriter, r *http.Request, status int, err error) {
-	logger.Errorf(err, r)
-
 	response := RestError{
 		Status:  status,
 		Message: http.StatusText(status),

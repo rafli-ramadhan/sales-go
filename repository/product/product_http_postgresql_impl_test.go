@@ -47,7 +47,7 @@ func (c *ClientPostgresql) TearDownSetup() {
 }
 
 func (c *ClientPostgresql) AfterTest() {
-	log.Println("after test 	 : after all test executed")
+	log.Println("AFTER TEST 	 : after all test executed")
 }
 
 func (c *ClientPostgresql) TestGetListContactSuccess() {

@@ -11,7 +11,7 @@ import (
 	voucherMock "sales-go/repository-mocks/voucher"
 )
 
-func TestUseCaseTransaction(t *testing.T) {
+func TestUseCase(t *testing.T) {
 	t.Run("test get transaction by number success", func(t *testing.T) {
 		mockProductSuccess := productMock.NewProductRepoMock()
 		mockTransactionSuccess := transactionMock.NewTransactionRepoMock()

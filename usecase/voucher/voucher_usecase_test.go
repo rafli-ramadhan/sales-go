@@ -10,7 +10,7 @@ import (
 	"sales-go/model"
 )
 
-func TestUseCaseVoucher(t *testing.T) {
+func TestUseCase(t *testing.T) {
 	t.Run("get list voucher success", func(t *testing.T) {
 		mockSuccess := voucher.NewVoucherRepoMock()
 		usecase := NewDBHTTPUsecase(mockSuccess)

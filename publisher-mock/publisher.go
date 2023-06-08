@@ -15,6 +15,10 @@ func NewPublisher() *PublisherMock {
 func (m *PublisherMock) Publish(body interface{}) (err error) {
 	// sebagai indikator parameter diperoleh
 	ret := m.Called(body)
-	err = ret.Error(0)
+	// get return value dari mock
+	if ret.Get(0) != nil {
+		// type assertion
+		err = ret.Get(0).(error)
+	}
 	return
 }
